@@ -41,6 +41,13 @@ _Last updated: 2026-06-06_
 | Multi-actifs Drawdown (EA Desk Quant) | 7 actifs faible corrélation (propfirm) | Test démo | projects/MULTI_ACTIFS_DRAWDOWN.md |
 | Momentum Scanner | Multi-actifs broker (à définir) | Construction | projects/MOMENTUM_SCANNER.md |
 
+
+## Bibliothèque (index)
+
+| Sujet | Fichier |
+|--------|--------|
+| Gestion du temps en trading | libray/time_issues_and_trading.md |
+
 ## Notes transversales
 - **tick_value Silver** : valeur encodée en dur — toujours vérifier les spécifications
   broker réelles avant tout nouveau déploiement ou ajout d'actif (erreur reproduite
