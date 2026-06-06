@@ -38,4 +38,8 @@ _Last updated: 2026-06-06_
 | Momentum Scanner | Multi-actifs broker (à définir) | Construction | projects/MOMENTUM_SCANNER.md |
 
 ## Notes transversales
-_(Espace pour les observations générales accumulées au fil des projets)_
+- **tick_value Silver** : valeur encodée en dur — toujours vérifier les spécifications
+  broker réelles avant tout nouveau déploiement ou ajout d'actif (erreur reproduite
+  sur les deux projets Telegram et EA Desk Quant)
+- **Fuseau horaire** : tout le système doit fonctionner en UTC côté code.
+  Toujours documenter l'écart UTC/heure broker en début de projet.
