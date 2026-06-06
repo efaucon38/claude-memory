@@ -47,3 +47,17 @@ _Last updated: 2026-06-06_
   sur les deux projets Telegram et EA Desk Quant)
 - **Fuseau horaire** : tout le système doit fonctionner en UTC côté code.
   Toujours documenter l'écart UTC/heure broker en début de projet.
+- **Spread réel broker** : toujours vérifier le spread réel en production avant
+  d'inclure un actif, même si le backtest est excellent (ex: Nikkei — 10 026 refus
+  en 16 jours sur RaiseFX)
+- **Backtest : cohérence timeframe/paramètres** : les paramètres doivent correspondre
+  au timeframe du backtest — une SMA 30 sur H1 ≠ SMA 30 sur D1 (erreur EA Desk Quant)
+- **Backtest : méthode composée obligatoire** : toujours recalculer les lots sur le
+  capital courant à chaque trade — la méthode additive sous-estime la capitalisation
+  de +7 à +10 pts sur 7 ans
+- **Paradoxe portefeuille** : un actif excellent isolément peut dégrader le portefeuille
+  global (ex: Gold). Toujours backtester au niveau portefeuille, pas uniquement par actif
+- **Risque réel vs théorique** : toujours vérifier le coût réel d'un trade en EUR
+  avant déploiement (Silver/Gold peuvent être 7×-14× le risque théorique si mal calibrés)
+- **INITIAL_BALANCE** : toujours la coder en dur et la documenter — une valeur
+  automatique peut être erronée après des trades ou un rechargement de compte
