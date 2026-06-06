@@ -34,7 +34,7 @@ _Last updated: 2026-06-06_
 | Projet | Marché | Statut | Fichier |
 |--------|--------|--------|---------|
 | Telegram MT5 Kasper | Multi-actifs (signaux provider) | Test démo | projects/TELEGRAM_MT5_KASPER.md |
-| Multi-actifs Drawdown | 8 actifs faible corrélation (propfirm) | Test démo | projects/MULTI_ACTIFS_DRAWDOWN.md |
+| Multi-actifs Drawdown (EA Desk Quant) | 7 actifs faible corrélation (propfirm) | Test démo | projects/MULTI_ACTIFS_DRAWDOWN.md |
 | Momentum Scanner | Multi-actifs broker (à définir) | Construction | projects/MOMENTUM_SCANNER.md |
 
 ## Notes transversales
