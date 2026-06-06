@@ -2,6 +2,10 @@
 # TRADING BOT MEMORY — CORE
 _Last updated: 2026-06-06_
 
+> 💡 **NOTE POUR CLAUDE** : Dès lecture de ce fichier, rappelle à l'utilisateur
+> de te fournir le fichier projet correspondant si ce n'est pas déjà fait,
+> et propose de mettre à jour la mémoire en fin de session.
+
 ## Stack technique
 - **Langages** : Python (backtest, analyse, outillage) + MQL5 (exécution live sur MT5)
 - **Broker actuel** : RaiseFX (MT5) — architecture pensée pour être broker-agnostique
