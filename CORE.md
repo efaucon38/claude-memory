@@ -1,6 +1,6 @@
 
 # TRADING BOT MEMORY — CORE
-_Last updated: 2026-06-06_
+_Last updated: 2026-06-08_
 
 > 💡 **NOTE POUR CLAUDE** : Dès lecture de ce fichier, rappelle à l'utilisateur
 > de te fournir le fichier projet correspondant si ce n'est pas déjà fait,
@@ -11,6 +11,30 @@ _Last updated: 2026-06-06_
 - **Broker actuel** : RaiseFX (MT5) — architecture pensée pour être broker-agnostique
 - **Backtest** : piloté par Claude en Python, à partir de données exportées du broker
 - **Marchés** : Forex, Crypto, Indices (DAX, SP500...), Actions/ETF
+
+## Outils et environnement
+- **PC local** : Windows 10 Pro — développement, backtests MT5, Claude Code
+- **VPS** : Windows 10 — exécution live MT5, Ponderation.py, backtests Python
+- **Claude Code** : installé et opérationnel dans VS Code sur PC local
+  - Accès direct aux fichiers locaux sans upload
+  - Mémoire auto-chargée via CLAUDE.md à chaque session
+  - Clone local du repo mémoire : C:\TradingBots\claude-memory\
+- **Tick Data Suite** : données ticks Dukascopy
+  - Chemin local : C:\Users\ericf\Documents\Trading algo\Tick Data Suite\
+  - Format fichiers : AAAA-MM-JJ - AAAA-MM-JJ - SYMBOLE_GMT+0_NO-DST ticks.csv
+  - Format données : JJ.MM.AAAA HH:MM:SS.mmm, Bid, Ask, VolBid, VolAsk (GMT+0, sans DST)
+  - ⚠️ Toujours vérifier première/dernière ligne avant tout backtest
+    (nom de fichier ≠ contenu réel — expérience EURUSD/XAUUSD/USA_100)
+  - Workflow obligatoire : télécharger d'abord, exporter les ticks ensuite
+  - Statut actuel des fichiers :
+    | Symbole | Période réelle   | Statut       |
+    |---------|------------------|--------------|
+    | EURUSD  | 01.2020→02.2026  | ✅ Utilisable |
+    | GBPJPY  | 01.2020→02.2026  | ✅ Utilisable |
+    | USDJPY  | 01.2020→02.2026  | ✅ Utilisable |
+    | XAGUSD  | 01.2020→02.2026  | ✅ Utilisable |
+    | XAUUSD  | tronqué oct.2021 | 🔴 À relancer |
+    | USA_100 | en cours export  | ⏳ Attendre   |
 
 ## Mode de collaboration
 - L'utilisateur décrit l'idée ou le besoin
@@ -75,3 +99,6 @@ _Last updated: 2026-06-06_
   avant déploiement (Silver/Gold peuvent être 7×-14× le risque théorique si mal calibrés)
 - **INITIAL_BALANCE** : toujours la coder en dur et la documenter — une valeur
   automatique peut être erronée après des trades ou un rechargement de compte
+- **Vérification données avant backtest** : toujours contrôler première
+  et dernière ligne de chaque fichier source avant utilisation.
+  Claude Code peut automatiser ce contrôle sur les fichiers locaux.
