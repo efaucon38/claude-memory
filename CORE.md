@@ -41,12 +41,19 @@ _Last updated: 2026-06-06_
 | Multi-actifs Drawdown (EA Desk Quant) | 7 actifs faible corrélation (propfirm) | Test démo | projects/MULTI_ACTIFS_DRAWDOWN.md |
 | Momentum Scanner | Multi-actifs broker (à définir) | Construction | projects/MOMENTUM_SCANNER.md |
 
+## Dernières versions codées (index)
+
+| Projet | Marché | Statut | Fichier |
+|--------|--------|--------|---------|
+| Telegram MT5 Kasper | Multi-actifs (signaux provider) | Test démo | bot_files/botTelegram_Kasper_code.md |
+| Multi-actifs Drawdown (EA Desk Quant) | 7 actifs faible corrélation (propfirm) | bot_files/Ponderation_code.md |
+| Multi-actifs Drawdown (EA Desk Quant) | 7 actifs faible corrélation (propfirm) | bot_files/EA_FX_Universal_code.md |
 
 ## Bibliothèque (index)
 
 | Sujet | Fichier |
 |--------|--------|
-| Gestion du temps en trading | libray/time_issues_and_trading.md |
+| Gestion du temps en trading | library/time_issues_and_trading.md |
 
 ## Notes transversales
 - **tick_value Silver** : valeur encodée en dur — toujours vérifier les spécifications
