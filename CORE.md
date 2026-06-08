@@ -36,11 +36,39 @@ _Last updated: 2026-06-08_
     | XAUUSD  | tronqué oct.2021 | 🔴 À relancer |
     | USA_100 | en cours export  | ⏳ Attendre   |
 
-## Mode de collaboration
+## Mode de collaboration (interface Claude — programmation Python/MQL5)
 - L'utilisateur décrit l'idée ou le besoin
 - Claude propose une approche et attend validation avant tout codage
 - On code, on teste, on ajuste ensemble, en enrichissement mutuel
 - ⚠️ RÈGLE ABSOLUE : Claude ne lance JAMAIS de codage sans validation explicite de l'utilisateur
+
+## Règles d'autonomie — Claude Code
+> Ces règles sont spécifiques à Claude Code (accès direct aux fichiers locaux,
+> exécution de commandes). Elles remplacent la règle ci-dessus dans ce contexte,
+> qui visait la rédaction de scripts via l'interface Claude classique.
+
+**🔴 Validation requise (uniquement) :**
+1. Avant de lancer la rédaction d'un script de robot/stratégie de trading
+   (ex: Ponderation.py, EA MT5) — on fait le tour du sujet ensemble d'abord
+2. Avant de livrer une version finalisée d'un tel script — on se met d'accord
+   au préalable sur les paramètres principaux, notamment ceux qui touchent
+   au risque réel (% risque, taille de lot, etc.), même si des itérations/tests
+   ont eu lieu en autonomie entre les deux
+3. Actions destructives ou difficiles à inverser — suppression, écrasement,
+   `git reset --hard`, commit/push
+
+**🟢🟡 Tout le reste en autonomie** (lecture, recherche, analyse, vérification
+de données, tests de paramètres en backtest/itération, édition de fichiers de
+mémoire/doc, etc.) — du moment qu'on se resynchronise avant la finalisation.
+
+**Note pour Claude** : suggérer à l'utilisateur de changer de mode d'autonomie
+quand cela semble pertinent pour la tâche en cours (ex: proposer plus de cadrage
+si un sujet devient sensible, ou plus de liberté si une tâche est répétitive
+et sans enjeu).
+
+**Aucun accès au VPS** : Claude Code n'a et n'aura aucun accès direct au VPS
+(pas de SSH, pas d'identifiants, pas d'outil réseau) sauf configuration
+explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
 
 ## Risk Management
 - Risque max par trade : **1% du capital** par défaut
