@@ -1,6 +1,6 @@
 
 # TRADING BOT MEMORY — CORE
-_Last updated: 2026-06-08_
+_Last updated: 2026-06-11_
 
 > 💡 **NOTE POUR CLAUDE** : Dès lecture de ce fichier, rappelle à l'utilisateur
 > de te fournir le fichier projet correspondant si ce n'est pas déjà fait,
@@ -90,7 +90,7 @@ explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
 | Projet | Marché | Statut | Fichier |
 |--------|--------|--------|---------|
 | Telegram MT5 Kasper | Multi-actifs (signaux provider) | Test démo | projects/TELEGRAM_MT5_KASPER.md |
-| Multi-actifs Drawdown (EA Desk Quant) | 7 actifs faible corrélation (propfirm) | Test démo | projects/MULTI_ACTIFS_DRAWDOWN.md |
+| EA Desk Quant | 8 actifs (propfirm 7 + Gold) | **Test démo — 2 comptes actifs, v3.0 OFFENSIF** | projects/MULTI_ACTIFS_DRAWDOWN.md |
 | Momentum Scanner | Multi-actifs broker (à définir) | Construction | projects/MOMENTUM_SCANNER.md |
 | Fourier | EURUSD / USDJPY / NAS100 (recherche exploratoire) | **Clos — verdict négatif** | projects/FOURIER.md |
 
@@ -99,8 +99,8 @@ explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
 | Projet | Marché | Statut | Fichier |
 |--------|--------|--------|---------|
 | Telegram MT5 Kasper | Multi-actifs (signaux provider) | Test démo | bot_files/botTelegram_Kasper_code.md |
-| Multi-actifs Drawdown (EA Desk Quant) | 7 actifs faible corrélation (propfirm) | bot_files/Ponderation_code.md |
-| Multi-actifs Drawdown (EA Desk Quant) | 7 actifs faible corrélation (propfirm) | bot_files/EA_FX_Universal_code.md |
+| EA Desk Quant — Ponderation v3.0 OFFENSIF, périodes corrigées | 7 actifs faible corrélation (propfirm) + Gold (compte propre) | 2 comptes actifs en test démo | bot_files/Ponderation_code.md |
+| EA Desk Quant — EA_FX_Universal v2.9 | 7 actifs faible corrélation (propfirm) | Test démo | bot_files/EA_FX_Universal_code.md |
 
 ## Bibliothèque (index)
 
@@ -131,3 +131,13 @@ explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
 - **Vérification données avant backtest** : toujours contrôler première
   et dernière ligne de chaque fichier source avant utilisation.
   Claude Code peut automatiser ce contrôle sur les fichiers locaux.
+- **Seuils de range momentum** : toujours ajuster le seuil selon la période réelle
+  (`seuil = base_60j × période/60`). Un seuil fixe biaise les conclusions sur les
+  périodes courtes/longues (erreur corrigée en backtest v3 EA Desk Quant)
+- **MODE_DEFENSIF** : attention au bug structurel — la valeur effective est sur une
+  ligne seule (`MODE_DEFENSIF = True/False`) distincte des commentaires. Toujours
+  vérifier `grep -n "^MODE_DEFENSIF"` après déploiement d'un nouveau fichier
+- **Performances non additives en portefeuille** : un actif à +7.7%/an isolément
+  peut contribuer seulement +0.7%/an en portefeuille (Gold : 9% × 7.7%). Toujours
+  raisonner en contribution pondérée, pas en performance individuelle
+
