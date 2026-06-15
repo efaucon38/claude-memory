@@ -1,6 +1,6 @@
 
 # TRADING BOT MEMORY — CORE
-_Last updated: 2026-06-11_
+_Last updated: 2026-06-16_
 
 > 💡 **NOTE POUR CLAUDE** : Dès lecture de ce fichier, rappelle à l'utilisateur
 > de te fournir le fichier projet correspondant si ce n'est pas déjà fait,
@@ -8,8 +8,8 @@ _Last updated: 2026-06-11_
 
 ## Stack technique
 - **Langages** : Python (backtest, analyse, outillage) + MQL5 (exécution live sur MT5)
-- **Broker actuel** : RaiseFX (MT5) — architecture pensée pour être broker-agnostique
-- **Backtest** : piloté par Claude en Python, à partir de données exportées du broker
+- **Broker actuel** : RaiseFX (MT5) pour tests — architecture pensée pour être broker-agnostique
+- **Backtest** : piloté par Claude en Python, à partir de données exportées du broker ou Tick Data Suite (stockées localement)
 - **Marchés** : Forex, Crypto, Indices (DAX, SP500...), Actions/ETF
 
 ## Outils et environnement
@@ -93,6 +93,7 @@ explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
 | EA Desk Quant | 8 actifs (propfirm 7 + Gold) | **Test démo — 2 comptes actifs, v3.0 OFFENSIF** | projects/MULTI_ACTIFS_DRAWDOWN.md |
 | Momentum Scanner | Multi-actifs broker (à définir) | Construction | projects/MOMENTUM_SCANNER.md |
 | Fourier | EURUSD / USDJPY / NAS100 (recherche exploratoire) | **Clos — verdict négatif** | projects/FOURIER.md |
+| ICT_ROBOT | Multi-actifs | Construction | projects/ICT_ROBOT.md |
 
 ## Dernières versions codées (index)
 
@@ -140,4 +141,7 @@ explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
 - **Performances non additives en portefeuille** : un actif à +7.7%/an isolément
   peut contribuer seulement +0.7%/an en portefeuille (Gold : 9% × 7.7%). Toujours
   raisonner en contribution pondérée, pas en performance individuelle
-
+- **Projet ICT Robot** (démarré 2026-06-16) : objectif = robot ICT optimal en Python/MT5.
+  Concepts clés à implémenter : Order Blocks (avec FVG, BOS, displacement), 
+  gestion multi-OB, filtrage par session, analyse multi-timeframe (HTF→LTF).
+  Claude positionné comme expert ICT + Python/MT5 sur ce projet.
