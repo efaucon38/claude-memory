@@ -94,6 +94,7 @@ explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
 | Momentum Scanner | Multi-actifs broker (à définir) | Construction | projects/MOMENTUM_SCANNER.md |
 | Fourier | EURUSD / USDJPY / NAS100 (recherche exploratoire) | **Clos — verdict négatif** | projects/FOURIER.md |
 | ICT_ROBOT | Multi-actifs | Construction | projects/ICT_ROBOT.md |
+| UFUNDED_OVERNIGHT_PORTFOLIO | US Stocks / ETF | Construction en cours — Étape 4 validée | projects/UFUNDED.md |
 
 ## Dernières versions codées (index)
 
