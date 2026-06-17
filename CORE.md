@@ -1,4 +1,3 @@
-
 # TRADING BOT MEMORY — CORE
 _Last updated: 2026-06-17_
 
@@ -88,6 +87,9 @@ explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
 3. **Calcul de la taille des lots** : ne jamais confondre % du capital et valeur absolue — toujours expliciter la formule utilisée et la faire valider
 4. **Drawdown "trailing" vs "static"** : ne jamais supposer qu'un drawdown se calcule par rapport au plus-haut glissant (convention par défaut en gestion de portefeuille classique) — beaucoup de prop firms (dont UFUNDED, confirmé par account manager) utilisent un drawdown STATIQUE, ancré sur le capital initial, qui ne bouge jamais même après profits ou payouts. Toujours vérifier/faire confirmer la règle exacte du broker/plateforme avant de bâtir une simulation de risque.
 5. **Hypothèses de simulation non explicitées** : tout paramètre structurant d'un backtest (fréquence de rebalancement, fractionnement des actions, prise en compte des commissions...) doit être annoncé clairement AVANT de lancer la simulation, pas découvert a posteriori suite à une question de l'utilisateur (erreur commise sur le projet UFUNDED : poids simulés en % continus sans vérifier d'abord la faisabilité en lots entiers).
+6. **Walk-forward obligatoire** : tout backtest doit séparer le jeu de données en 70% (entraînement/paramétrage) et 30% (test sur données inconnues). Jamais de look-ahead bias. Le paramétrage validé sur les 70% doit être rejoué tel quel sur les 30% restants pour juger de la robustesse réelle.
+7. **État du marché en parallèle du backtest** : pour tout backtest, calculer en parallèle des métriques caractérisant le régime de marché du moment (volatilité, tendance, range...) afin d'identifier a posteriori dans quelles phases la stratégie est performante ou non — pas seulement le P&L brut.
+8. **Spécificités broker par actif** : toujours vérifier les spécificités réelles du broker pour chaque actif cible (tick value, spread, marge, horaires) avant déploiement — ne jamais supposer une valeur générique.
 
 ## Projets (index)
 
@@ -147,8 +149,50 @@ explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
   peut contribuer seulement +0.7%/an en portefeuille (Gold : 9% × 7.7%). Toujours
   raisonner en contribution pondérée, pas en performance individuelle
 - **Projet ICT Robot** (démarré 2026-06-16) : objectif = robot ICT optimal en Python/MT5.
-  Concepts clés à implémenter : Order Blocks (avec FVG, BOS, displacement), 
-  gestion multi-OB, filtrage par session, analyse multi-timeframe (HTF→LTF).
-  Claude positionné comme expert ICT + Python/MT5 sur ce projet.
+  Concepts clés à implémenter : Order Blocks (avec FVG, BOS, displacement), niveaux 
+  de Fibonacci comme points d'entrée potentiels, gestion multi-OB, filtrage par
+  session, analyse multi-timeframe (HTF→LTF). Claude positionné comme expert ICT
+  + Python/MT5 sur ce projet.
 - **Fractionnement d'actions à vérifier systématiquement** : ne jamais supposer qu'une plateforme permet l'achat de fractions d'actions/ETF. Testé négatif sur UFUNDED (lot minimum = 1, sur actions ET ETF) — contrairement aux brokers retail US classiques (Fidelity, Schwab...). Le cash résiduel d'arrondi lié aux lots entiers peut peser plus lourd que les commissions elles-mêmes sur un portefeuille multi-lignes à capital limité.
 - **SL individuel vs garde-fou portefeuille** : bien distinguer le rôle d'un Stop-Loss par ligne (protection contre un accident idiosyncratique isolé) de celui d'un palier de drawdown au niveau du portefeuille global (protection contre un choc de marché généralisé, où toutes les lignes baissent ensemble et où le SL individuel n'aide pas). Un SL trop serré peut être contre-productif sur une stratégie cœur stable/buy-and-hold, car il coupe des positions saines sur du simple bruit cyclique — toujours tester la sensibilité à plusieurs seuils avant de figer (cf. projet UFUNDED : -8% contre-productif dans 7 cas/8 sur backtest 5 ans, -20% retenu).
+
+## 💡 Idées de stratégies (backlog)
+> Idées capturées au fil des réflexions, non développées à ce jour. À revisiter
+> quand un créneau de travail se libère ou qu'un projet en cours s'y prête.
+
+1. **Carte d'identité d'un actif** : système pour caractériser un actif (régime/phase à l'instant t) de façon synthétique. Voir module 5.2 ~min 53 pour un descriptif des phases de référence.
+
+2. **Couplage VIX** : comprendre le calcul du VIX et tester si certains actifs présentent une corrélation décalée (lead/lag) avec lui. À tester en walk-forward 70/30.
+
+3. **Stratégie "F14" (programme multi-étapes)** :
+   - Construire une stratégie trend-following (un ou plusieurs indicateurs, entrées/sorties éventuellement sur timeframes différents), la faire tourner sur un actif au choix, en mesurant une batterie de paramètres de détection de régime (Aroon, ADX, volatilité...)
+   - Classer la performance selon ces paramètres
+   - Ajouter des filtres de régime pour ne garder la stratégie active que dans les conditions jugées optimales, puis valider en walk-forward sur les 30% non utilisés
+   - Répéter la démarche avec une stratégie mean-reversion (range), puis une stratégie breakout, sur le même actif
+   - Explorer d'autres grandes familles de stratégies pertinentes
+   - Vérifier la corrélation des résultats entre les différentes stratégies
+   - Combiner l'ensemble dans un seul EA MT5 (valable pour un actif donné) et backtester
+
+4. **Gestionnaire de risque adaptatif** : pour une stratégie donnée, mesurer l'impact d'un système augmentant le risque en phase favorable (enchaînement de TPs) et le réduisant en phase défavorable (enchaînement de SLs).
+
+5. **Performance multi-timeframes** : tester une même stratégie sur plusieurs timeframes pour comparer. Explorer la combinaison fractale (ex: D1/H4/H1 ou H4/H1/M15) et la possibilité de prendre les entrées sur une timeframe et les sorties sur une autre (finesse d'exécution).
+
+6. **Corrélation indicateurs ↔ mouvement de la bougie suivante** : pour un actif et une timeframe donnés, analyser un large éventail d'indicateurs et identifier ceux corrélés au mouvement de la bougie suivante. Valider les hypothèses en walk-forward.
+
+7. **Algo DCA intelligent — améliorations** :
+   - Ne prendre position que si la pente de la SMA200 est positive (période de calcul de la pente à définir — 10 ? — et seuil minimum à déterminer ; identifier aussi le moment de la journée où les pentes les plus fortes apparaissent)
+   - Sortir quand la pente s'inverse
+   - Étudier la possibilité de vendre (pas seulement arrêter d'acheter) quand les critères s'inversent
+
+8. **Facteurs macro-économiques** : creuser le lien entre facteurs macro mesurables et évolution des indices boursiers, à différentes timeframes (y compris très amples). Chercher des corrélations exploitables.
+
+9. **Données publiques en direct** : explorer la récupération de données en direct via des sources publiques (Yahoo Finance — CAC40, S&P500, Nasdaq100...) dans une optique de classement de force relative entre actifs.
+
+10. **Risk-on / Risk-off** : identifier des actifs performants en risk-on et d'autres en risk-off, cumuler leurs performances dans le temps pour lisser la courbe d'equity. Question ouverte : comment définir de façon mesurable qu'on est en phase risk-on ou risk-off ?
+
+11. **Variantes de stratégies pour multi-comptes prop firms** : construire des versions différentes mais apparentées d'une même stratégie (indicateurs d'entrée/sortie variés, mixés) pour déployer sur plusieurs comptes (ex: FTMO) sans risquer d'être identifié comme copie de signal.
+
+12. **Stratégie "Dow"** : sur actifs en tendance avec structure claire, identifier points hauts/bas pour optimiser le timing d'entrée.
+
+## 📌 Tâches en attente (projets existants)
+- **EA_FX_Universal** : retester avec les données Tick Data Suite, en ajoutant un interrupteur sur le module de gestion du risque (désapprouvé par Léo), et en augmentant le niveau de risque pour observer l'impact sur le drawdown quotidien et global.
