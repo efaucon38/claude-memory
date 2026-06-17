@@ -1,6 +1,6 @@
 
 # TRADING BOT MEMORY — CORE
-_Last updated: 2026-06-16_
+_Last updated: 2026-06-17_
 
 > 💡 **NOTE POUR CLAUDE** : Dès lecture de ce fichier, rappelle à l'utilisateur
 > de te fournir le fichier projet correspondant si ce n'est pas déjà fait,
@@ -70,6 +70,8 @@ et sans enjeu).
 (pas de SSH, pas d'identifiants, pas d'outil réseau) sauf configuration
 explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
 
+**Récupération des données** : Les sources de données potentielles sont multiples : données du broker disponible via l'API MT5, données Tick Data Suite disponibles sur ordinateur local après téléchargement, données publiques accessible via Yahoo Finance. Leur utilisation dépendra de la nature du projet. L'outil d'exécution de code de l'interface claude.ai classique n'a pas d'accès réseau direct (confirmé sur le projet UFUNDED — pip/yfinance inutilisables dans ce bac à sable claude.ai spécifique). Claude y conserve cependant un accès web via ses outils de recherche/navigation (web_search, web_fetch) pour consulter de la documentation ou des pages publiques. Pour tout script nécessitant un téléchargement de données de marché en direct dans ce contexte, le script doit être exécuté localement par l'utilisateur (ou via Claude Code, qui s'exécute sur la machine locale et n'a pas cette restriction), qui renvoie les résultats (CSV) pour interprétation. 
+
 ## Risk Management
 - Risque max par trade : **1% du capital** par défaut
 - Toute dérogation à cette règle doit être décidée explicitement par l'utilisateur
@@ -84,6 +86,8 @@ explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
 1. **Codage sans autorisation** : Claude ne produit aucun code sans validation préalable explicite de l'utilisateur
 2. **Gestion des fuseaux horaires** : toujours clarifier et documenter l'écart UTC / heure broker en début de projet, ne jamais supposer qu'ils sont identiques
 3. **Calcul de la taille des lots** : ne jamais confondre % du capital et valeur absolue — toujours expliciter la formule utilisée et la faire valider
+4. **Drawdown "trailing" vs "static"** : ne jamais supposer qu'un drawdown se calcule par rapport au plus-haut glissant (convention par défaut en gestion de portefeuille classique) — beaucoup de prop firms (dont UFUNDED, confirmé par account manager) utilisent un drawdown STATIQUE, ancré sur le capital initial, qui ne bouge jamais même après profits ou payouts. Toujours vérifier/faire confirmer la règle exacte du broker/plateforme avant de bâtir une simulation de risque.
+5. **Hypothèses de simulation non explicitées** : tout paramètre structurant d'un backtest (fréquence de rebalancement, fractionnement des actions, prise en compte des commissions...) doit être annoncé clairement AVANT de lancer la simulation, pas découvert a posteriori suite à une question de l'utilisateur (erreur commise sur le projet UFUNDED : poids simulés en % continus sans vérifier d'abord la faisabilité en lots entiers).
 
 ## Projets (index)
 
@@ -94,7 +98,7 @@ explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
 | Momentum Scanner | Multi-actifs broker (à définir) | Construction | projects/MOMENTUM_SCANNER.md |
 | Fourier | EURUSD / USDJPY / NAS100 (recherche exploratoire) | **Clos — verdict négatif** | projects/FOURIER.md |
 | ICT_ROBOT | Multi-actifs | Construction | projects/ICT_ROBOT.md |
-| UFUNDED_OVERNIGHT_PORTFOLIO | US Stocks / ETF | Construction en cours — Étape 4 validée | projects/UFUNDED.md |
+| UFUNDED_OVERNIGHT_PORTFOLIO | US Stocks / ETF | Allocation et sizing finalisés — ordres prévus pour être passés prochainement (marché fermé pour le moment) | projects/UFUNDED.md |
 
 ## Dernières versions codées (index)
 
@@ -146,3 +150,5 @@ explicite future par l'utilisateur. Les deux environnements restent cloisonnés.
   Concepts clés à implémenter : Order Blocks (avec FVG, BOS, displacement), 
   gestion multi-OB, filtrage par session, analyse multi-timeframe (HTF→LTF).
   Claude positionné comme expert ICT + Python/MT5 sur ce projet.
+- **Fractionnement d'actions à vérifier systématiquement** : ne jamais supposer qu'une plateforme permet l'achat de fractions d'actions/ETF. Testé négatif sur UFUNDED (lot minimum = 1, sur actions ET ETF) — contrairement aux brokers retail US classiques (Fidelity, Schwab...). Le cash résiduel d'arrondi lié aux lots entiers peut peser plus lourd que les commissions elles-mêmes sur un portefeuille multi-lignes à capital limité.
+- **SL individuel vs garde-fou portefeuille** : bien distinguer le rôle d'un Stop-Loss par ligne (protection contre un accident idiosyncratique isolé) de celui d'un palier de drawdown au niveau du portefeuille global (protection contre un choc de marché généralisé, où toutes les lignes baissent ensemble et où le SL individuel n'aide pas). Un SL trop serré peut être contre-productif sur une stratégie cœur stable/buy-and-hold, car il coupe des positions saines sur du simple bruit cyclique — toujours tester la sensibilité à plusieurs seuils avant de figer (cf. projet UFUNDED : -8% contre-productif dans 7 cas/8 sur backtest 5 ans, -20% retenu).
