@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================================
-BACKTEST V5 — STRATÉGIE RANGE BREAKOUT 9H30 EST + FAIR VALUE GAP
+BACKTEST V6 — STRATÉGIE RANGE BREAKOUT 9H30 EST + FAIR VALUE GAP
 ================================================================================
 
 DESCRIPTION
@@ -55,16 +55,10 @@ Double snapshot enregistré à chaque trade :
 Permet d'analyser séparément les conditions pré-signal et les conditions
 au moment de l'entrée.
 
-VARIANTE RETEST (USE_RETEST_ENTRY)
------------------------------------
-Si True (activé par défaut en V5) :
-  Si le breakout initial (N+1 ferme au-delà du range) ne génère pas de FVG
-  avec N+2, on mémorise la direction du breakout et on continue à surveiller.
-  Si le prix revient dans le range et qu'un nouveau pattern FVG se forme
-  depuis le niveau du range → entrée dans la direction du breakout initial.
-  SL : bas/haut de la bougie de displacement du retest (même logique).
-  La fenêtre de recherche reste 90 minutes depuis la fin du range.
-Si False : comportement identique à V4 (breakout direct uniquement).
+VARIANTE RETEST
+---------------
+Supprimée en V6 — aucun trade retest détecté sur 15 ans (V5).
+La logique de retest a été retirée du code.
 
 POINTS DE VIGILANCE
 -------------------
@@ -105,8 +99,8 @@ import numpy as np
 #               à quelle exécution, même après plusieurs runs.
 #               À reporter tel quel dans l'EA MT5 comme magic number des ordres
 #               (permet de tracer les ordres passés par ce robot spécifiquement).
-RUN_ID       = "v5_retest"
-MAGIC_NUMBER = "A1B2C3D4"   # ← Changer manuellement pour chaque nouveau run
+RUN_ID       = "v6_rr3"
+MAGIC_NUMBER = "B2C3D4E5"   # ← Changer manuellement pour chaque nouveau run
 
 # --- Fichier de données [MANUEL] ---
 FILE_PATH  = r"C:\Users\ericf\Documents\Trading algo\Tick Data Suite\2011-10-01 - 2026-05-31 - USA_100_Technical_Index_GMT+0_NO-DST ticks.csv"
@@ -136,7 +130,33 @@ SESSION_END_HOUR   = 23     # [ANALYSE] Confirmé Dukascopy + RaiseFX
 
 # --- Paramètres stratégie ---
 RISK_REWARD        = 2.0    # Ratio TP/SL fixe
-USE_RETEST_ENTRY   = True   # Variante retest — activée en V5 (False = comportement V4)
+# --- Filtre années (backtest partiel) ---
+# Liste des années à traiter. Mettre [] pour traiter toutes les années.
+# V6 : sélection des années les plus représentatives pour valider R:R 3:1
+YEARS_FILTER  = [2012, 2018, 2020, 2022, 2023, 2024]
+
+# --- Filtre jours de semaine ---
+# Permet d'exclure certains jours selon l'analyse ou le symbole cible.
+# Applicable aussi dans l'EA MT5 avec les mêmes paramètres.
+TRADE_MONDAY    = True    # Lundi
+TRADE_TUESDAY   = True    # Mardi
+TRADE_WEDNESDAY = True    # Mercredi — à désactiver si confirmé négatif
+TRADE_THURSDAY  = True    # Jeudi
+TRADE_FRIDAY    = True    # Vendredi
+TRADE_SATURDAY  = False   # Toujours False sur NASDAQ (marché fermé)
+TRADE_SUNDAY    = False   # Toujours False sur NASDAQ (marché fermé)
+
+# Tableau indexé par weekday() Python (0=lundi, 6=dimanche)
+# Utilisé dans flush_day() pour filtrer les jours non souhaités
+WEEKDAY_ALLOWED = [
+    TRADE_MONDAY,    # 0
+    TRADE_TUESDAY,   # 1
+    TRADE_WEDNESDAY, # 2
+    TRADE_THURSDAY,  # 3
+    TRADE_FRIDAY,    # 4
+    TRADE_SATURDAY,  # 5
+    TRADE_SUNDAY,    # 6
+]
 
 # --- Paramètres capital ---
 INITIAL_CAPITAL    = 10_000.0  # Unités abstraites, réinitialisé chaque année
@@ -560,14 +580,8 @@ def process_day(ts_us, ask, bid, indic: IndicatorState,
     cb    = ob.values[(ob_idx >= re_us) & (ob_idx < end_us)][ib]
     ts_c  = common_us
 
-    snap_n  = {}
-    setup   = None
-
-    # État de la variante retest :
-    # Si un breakout sans FVG est détecté, on mémorise sa direction
-    # et on attend un retour dans le range suivi d'un FVG.
-    retest_direction = None   # 'BUY' ou 'SELL' si breakout sans FVG détecté
-    retest_ref_candle_idx = None  # indice de la bougie de breakout initial
+    snap_n = {}
+    setup  = None
 
     for i in range(len(common_us) - 2):
         # Mise à jour indicateurs sur bougie N
@@ -586,81 +600,28 @@ def process_day(ts_us, ask, bid, indic: IndicatorState,
         spread = float(n2_c_ask - n2_c_bid)
         if spread > MAX_SPREAD_POINTS: continue
 
-        # ── SETUP DIRECT : FVG BUY ────────────────────────────────────
+        # FVG BUY : N+1 ferme au-dessus du range, gap entre N et N+2
         if n1_c_ask > range_h and n1_h_ask > range_h and n2_l_bid > n_h_ask:
             sl_pts = float(n2_c_ask - n1_l_bid)
             if sl_pts > 0:
                 snap_n = indic.snapshot(float(n2_c_ask), 'BUY', '')
                 setup  = ('BUY', float(n2_c_ask), float(n1_l_bid),
-                          spread, n2_ts, float(n2_l_bid - n_h_ask), 'DIRECT')
+                          spread, n2_ts, float(n2_l_bid - n_h_ask))
                 break
 
-        # ── SETUP DIRECT : FVG SELL ───────────────────────────────────
+        # FVG SELL : N+1 ferme en-dessous du range, gap entre N et N+2
         if n1_c_bid < range_l and n1_l_bid < range_l and n2_h_ask < n_l_bid:
             sl_pts = float(n1_h_ask - n2_c_bid)
             if sl_pts > 0:
                 snap_n = indic.snapshot(float(n2_c_bid), 'SELL', '')
                 setup  = ('SELL', float(n2_c_bid), float(n1_h_ask),
-                          spread, n2_ts, float(n_l_bid - n2_h_ask), 'DIRECT')
+                          spread, n2_ts, float(n_l_bid - n2_h_ask))
                 break
-
-        # ── VARIANTE RETEST ───────────────────────────────────────────
-        if USE_RETEST_ENTRY:
-
-            # Étape A : détecter un breakout sans FVG et mémoriser la direction
-            if retest_direction is None:
-                # Breakout haussier sans FVG : N+1 ferme au-dessus du range
-                # mais Low(N+2) <= High(N) → pas de gap
-                if (n1_c_ask > range_h and n1_h_ask > range_h and
-                        n2_l_bid <= n_h_ask):
-                    retest_direction     = 'BUY'
-                    retest_ref_candle_idx = i + 1   # N+1 = bougie de breakout
-
-                # Breakout baissier sans FVG
-                elif (n1_c_bid < range_l and n1_l_bid < range_l and
-                        n2_h_ask >= n_l_bid):
-                    retest_direction     = 'SELL'
-                    retest_ref_candle_idx = i + 1
-
-            # Étape B : si breakout sans FVG mémorisé, chercher le retest
-            elif retest_direction is not None:
-                # Vérifier que le prix est revenu dans le range
-                # (bougie N actuelle a son close dans le range)
-                n_close_ask = ca[i, 3]
-                n_close_bid = cb[i, 3]
-                price_in_range = (range_l <= n_close_bid <= range_h or
-                                  range_l <= n_close_ask <= range_h)
-
-                if price_in_range:
-                    # Chercher un FVG depuis le range dans la direction du breakout
-                    if retest_direction == 'BUY':
-                        # FVG BUY depuis le range
-                        if (n1_c_ask > range_h and n1_h_ask > range_h and
-                                n2_l_bid > n_h_ask):
-                            sl_pts = float(n2_c_ask - n1_l_bid)
-                            if sl_pts > 0:
-                                snap_n = indic.snapshot(float(n2_c_ask), 'BUY', '')
-                                setup  = ('BUY', float(n2_c_ask), float(n1_l_bid),
-                                          spread, n2_ts,
-                                          float(n2_l_bid - n_h_ask), 'RETEST')
-                                break
-
-                    elif retest_direction == 'SELL':
-                        # FVG SELL depuis le range
-                        if (n1_c_bid < range_l and n1_l_bid < range_l and
-                                n2_h_ask < n_l_bid):
-                            sl_pts = float(n1_h_ask - n2_c_bid)
-                            if sl_pts > 0:
-                                snap_n = indic.snapshot(float(n2_c_bid), 'SELL', '')
-                                setup  = ('SELL', float(n2_c_bid), float(n1_h_ask),
-                                          spread, n2_ts,
-                                          float(n_l_bid - n2_h_ask), 'RETEST')
-                                break
 
     if setup is None:
         return {'date': d, 'result': 'NO_SETUP', 'capital_after': capital}
 
-    direction, entry, sl_price, spread_entry, n2_ts, fvg_size, setup_type = setup
+    direction, entry, sl_price, spread_entry, n2_ts, fvg_size = setup
     sl_pts   = abs(entry - sl_price)
     tp_price = entry + RISK_REWARD*sl_pts if direction == 'BUY' else entry - RISK_REWARD*sl_pts
 
@@ -730,7 +691,6 @@ def process_day(ts_us, ask, bid, indic: IndicatorState,
         # Résultat
         'result'          : result,
         'close_eod'       : result == 'CLOSE_EOD',
-        'setup_type'      : setup_type,   # 'DIRECT' ou 'RETEST'
         # Contexte setup
         'range_size_pts'  : round(range_sz, 4),
         'fvg_size_pts'    : round(fvg_size, 4),
@@ -855,18 +815,55 @@ def print_metrics(m: dict):
 # ==============================================================================
 
 class Progress:
-    def __init__(self, total):
-        self.total = total; self.t0 = time.time(); self.last = 0.
-    def update(self, br, extra=""):
+    """
+    Barre de progression par ANNÉE en cours.
+    Affiche le mois courant et la progression dans l'année.
+    """
+    MONTHS = ['jan','fév','mar','avr','mai','jun',
+              'jul','aoû','sep','oct','nov','déc']
+
+    def __init__(self):
+        self.t0       = time.time()
+        self.last     = 0.
+        self.year_t0  = {}    # heure de début de chaque année
+        self.year_cur = None
+
+    def update(self, cur_date, n_trades, speed_mbs):
         now = time.time()
         if now - self.last < 3.: return
         self.last = now
-        pct = min(br/self.total*100, 100.) if self.total > 0 else 0
-        el  = now - self.t0; sp = br/el/1e6 if el > 0 else 0
-        eta = int((self.total-br)/(br/el)) if br > 0 else 0
-        em, es = divmod(eta, 60); bl = 28; fi = int(bl*pct/100)
-        print(f"\r  [{'█'*fi+'░'*(bl-fi)}] {pct:5.1f}%  {sp:5.1f} Mo/s  "
-              f"ETA {em}m{es:02d}s  {extra}     ", end='', flush=True)
+        if cur_date is None: return
+
+        year  = cur_date.year
+        month = cur_date.month
+
+        # Enregistrer le début de l'année
+        if year not in self.year_t0:
+            self.year_t0[year] = now
+
+        # Progression dans l'année (basée sur le mois)
+        pct_year = (month - 1) / 12 * 100
+        bl = 24; fi = int(bl * pct_year / 100)
+        bar = '█' * fi + '░' * (bl - fi)
+
+        # Vitesse globale
+        el  = now - self.t0
+        sp  = speed_mbs
+
+        # ETA année en cours (extrapolation linéaire depuis le mois)
+        if month > 1:
+            elapsed_year = now - self.year_t0[year]
+            eta_year_s   = elapsed_year / (month - 1) * (12 - month + 1)
+            em, es = divmod(int(eta_year_s), 60)
+            eta_str = f"ETA année {em}m{es:02d}s"
+        else:
+            eta_str = ""
+
+        mon_str = self.MONTHS[month - 1]
+        print(f"\r  {year} [{bar}] {mon_str}  {sp:4.1f} Mo/s  "
+              f"{eta_str}  trades:{n_trades}     ",
+              end='', flush=True)
+
     def done(self):
         el = time.time() - self.t0
         print(f"\r  {'─'*65}", flush=True)
@@ -919,11 +916,14 @@ def write_year(year: int, trades: list, summary_rows: list,
 
 def run_backtest():
     log.info("="*70)
-    log.info(f" BACKTEST V5 — {ASSET_NAME}  (retest={'OUI' if USE_RETEST_ENTRY else 'NON'})")
+    log.info(f" BACKTEST V6 — {ASSET_NAME}  (R:R {RISK_REWARD}:1)")
     log.info(f" Capital : {INITIAL_CAPITAL:,.0f} pts/an  |  "
              f"Risque : {RISK_PERCENT}%  |  R:R {RISK_REWARD}:1")
     log.info(f" Fichier : {FILE_PATH}")
-    log.info(f" Variante retest : {'OUI — setups DIRECT + RETEST' if USE_RETEST_ENTRY else 'NON — setups DIRECT uniquement'}")
+    noms = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
+    jours_actifs = [noms[i] for i, v in enumerate(WEEKDAY_ALLOWED) if v]
+    log.info(f" Années filtrées : {YEARS_FILTER if YEARS_FILTER else 'toutes'}")
+    log.info(f" Jours actifs    : {jours_actifs}")
     log.info(f" Filtres — Spread max : {MAX_SPREAD_POINTS} pts  |  "
              f"Range min : {MIN_RANGE_POINTS} pts")
     log.info(f" EOD gap : {EOD_GAP_MINUTES} min")
@@ -959,8 +959,9 @@ def run_backtest():
     # Compteurs
     cnt_no_data = cnt_filtered = cnt_no_setup = cnt_eod = cnt_too_small = 0
 
-    prog       = Progress(file_size)
+    prog       = Progress()
     bytes_read = 0
+    speed_mbs  = 0.
 
     log.info(" Lecture unique — progression toutes les 3 secondes\n")
 
@@ -1036,10 +1037,11 @@ def run_backtest():
     avg_bytes_per_line = file_size // max(1, file_size // 33)
 
     for chunk in reader:
-        bytes_read = min(bytes_read + len(chunk) * 33, file_size)
-        prog.update(bytes_read,
-                    extra=f"| {day_id_to_date(cur_day_id) if cur_day_id>=0 else '...'}"
-                          f" | {cur_year or '...'} | trades:{len(year_trades)}")
+        bytes_read += len(chunk) * 33
+        elapsed_total = time.time() - prog.t0
+        speed_mbs = bytes_read / elapsed_total / 1e6 if elapsed_total > 0 else 0.
+        cur_date_disp = day_id_to_date(cur_day_id) if cur_day_id >= 0 else None
+        prog.update(cur_date_disp, len(year_trades), speed_mbs)
 
         ts_us    = parse_timestamps_vectorized(chunk['timestamp'])
         ask_vals = chunk['ask'].values
