@@ -10,11 +10,11 @@ Stratégie de scalping sur l'ouverture du marché US (9h30 EST). Entrée sur bre
 | Phase | Statut |
 |-------|--------|
 | Conception et validation logique | ✅ Terminé |
-| Script analyse exploratoire (script 1) | ✅ Codé — en cours d'exécution sur 28 Go |
-| Script backtest Python (v4) | ✅ Codé — en attente des paramètres de l'analyse exploratoire |
+| Script analyse exploratoire (script 1) | ✅ Terminé — JSON validé le 2026-06-24 |
+| Script backtest Python (v4) | ✅ Codé — **en cours d'exécution** sur 28 Go |
 | Script micro-trade test | ✅ Codé et exécuté |
-| Mise à jour paramètres v4 post-analyse | ⏳ En attente du JSON de l'analyse exploratoire |
-| Analyse des résultats backtest | ⏳ En attente |
+| Paramètres v4 mis à jour post-analyse | ✅ Validé le 2026-06-24 |
+| Analyse des résultats backtest | ⏳ En attente de la fin du backtest |
 | Optimisation des filtres | ⏳ En attente |
 | Codage EA MQL5 | 🔜 À venir |
 | Tests forward sur RaiseFX | 🔜 À venir |
@@ -37,6 +37,7 @@ Stratégie de scalping sur l'ouverture du marché US (9h30 EST). Entrée sur bre
   - Hiver (EST = UTC-5) : 14h30–14h35 GMT
   - Été (EDT = UTC-4)   : 13h30–13h35 GMT
   - Gestion DST US automatique dans le code (2e dimanche de mars → 1er dimanche de novembre)
+- **Vérification effectuée** sur les trades 2013 : timestamps d'entrée cohérents avec les fenêtres EST/EDT ✅
 
 ### Construction du range
 - High = max(Ask) sur la bougie 5min — mèches incluses
@@ -76,17 +77,18 @@ Stratégie de scalping sur l'ouverture du marché US (9h30 EST). Entrée sur bre
 - P&L calculé sur le dernier prix mid disponible (réel, pas zéro)
 - **EXCLU** du win rate, profit factor, durée moyenne
 - **INCLUS** dans le P&L global et le drawdown
-- La durée p95 des trades TP/SL servira à calibrer `MAX_TRADE_DURATION` dans l'EA MT5
+- La durée **p95** des trades TP/SL servira à calibrer `MAX_TRADE_DURATION` dans l'EA MT5
+- Observation sur données 2013-2014 : p95 durée SL autour de 120-155 min → `MAX_TRADE_DURATION` suggéré : **240 min**
 
 ---
 
 ## Filtres actifs (V1)
-| Filtre | Valeur actuelle | Source | Rôle |
-|--------|----------------|--------|------|
-| `MAX_SPREAD_POINTS` | 4.0 pts | ⚠ Provisoire — à mettre à jour post-analyse exploratoire | Exclure les entrées en spread anormal |
-| `MIN_RANGE_POINTS`  | 10.0 pts | ⚠ Provisoire — à mettre à jour post-analyse exploratoire | Exclure les jours sans volatilité |
-| `EOD_GAP_MINUTES`   | 30 min | ⚠ Provisoire — à mettre à jour post-analyse exploratoire | Détection coupure nocturne |
-| `SESSION_END_HOUR`  | 23h GMT | ⚠ Provisoire — à mettre à jour post-analyse exploratoire | Heure fin de session |
+| Filtre | Valeur | Source | Rôle |
+|--------|--------|--------|------|
+| `MAX_SPREAD_POINTS` | **3.0 pts** | Analyse exploratoire — validé 2026-06-24 | p95 spread ouverture × 1.2 |
+| `MIN_RANGE_POINTS`  | **5.0 pts** | Analyse exploratoire — option B conservative | Affiner post-backtest via range_size_pts |
+| `EOD_GAP_MINUTES`   | **60 min**  | Analyse exploratoire — validé 2026-06-24 | Coupure nocturne ~20h GMT, durée ~105 min |
+| `SESSION_END_HOUR`  | **23h GMT** | Confirmé Dukascopy + RaiseFX | Heure fin de session |
 | `WEEKDAY_FILTER`    | True | Fixe | Exclure samedi et dimanche |
 
 ---
@@ -95,6 +97,41 @@ Stratégie de scalping sur l'ouverture du marché US (9h30 EST). Entrée sur bre
 Paramètre présent dans le code, désactivé en V1.
 Logique : si le breakout initial ne crée pas de FVG, on attend un retour dans le range. Si un FVG se forme depuis le range → entrée dans la direction du breakout initial.
 À activer et tester une fois les résultats V1 analysés.
+
+---
+
+## Résultats partiels du backtest v4 (en cours)
+Premiers résultats disponibles — backtest en cours d'exécution au moment de cette mise à jour.
+
+| Année | Trades | Win rate | P&L net (pts) | Profit Factor | Drawdown max | Sharpe |
+|-------|--------|----------|---------------|---------------|--------------|--------|
+| 2012 | 133 | 36.8% | +62.91 | 1.255 | 12.5% | 1.15 |
+| 2013 | 108 | 31.4% | -132.60 | 0.662 | 19.8% | -0.59 |
+| 2014 | 169 | 30.9% | -147.88 | 0.830 | 25.6% | -0.75 |
+
+**Observations préliminaires :**
+- Seuil de rentabilité théorique pour R:R 2:1 = **33.3% de win rate**
+- 2012 au-dessus du seuil ✅ — 2013/2014 en-dessous ❌
+- Durées des trades cohérentes avec du scalping (médiane 13-17 min)
+- Quelques trades longs (> 120 min) présents chaque année — normal sur marché peu volatil avec petit SL
+- CLOSE_EOD rares et bien gérés
+
+**Bug mineur identifié (timestamp) :**
+Le timestamp d'entrée enregistré correspond à l'ouverture de la bougie N+2, pas à sa fermeture (+1 minute). Impact : nul sur les prix et P&L, légère surestimation des durées sur ~7% des trades. À corriger dans la v4.1.
+
+---
+
+## Analyse exploratoire — résultats clés (données 2012-2026)
+| Métrique | Global | Train (2012-2021) | Test (2022-2026) |
+|----------|--------|-------------------|------------------|
+| Range médian 5min | 21.1 pts | 12.9 pts | 52.8 pts |
+| Spread médian ouverture | 1.57 pts | 1.31 pts | 1.78 pts |
+| Spread p95 ouverture | 2.20 pts | 2.20 pts | 1.92 pts |
+| Prix mid moyen | 9 684 pts | 6 390 pts | 17 361 pts |
+| Coupure nocturne | ~20h GMT | ~20h GMT | ~20h GMT |
+| Durée coupure médiane | 105 min | 105 min | 105 min |
+
+**Alerte walk-forward majeure :** taille du range × 4 entre train et test (+199%) — changement structurel réel du marché lié à la hausse des prix (×3.3). Pas un problème de stratégie — à analyser via `range_size_pts` dans les résultats du backtest.
 
 ---
 
@@ -118,7 +155,7 @@ Logique : si le breakout initial ne crée pas de FVG, on attend un retour dans l
 | Volume min | 0.01 lot | MT5 |
 | Volume step | 0.01 lot | MT5 |
 
-**Note CONTRACT_VALUE** : le backtest Python travaille entièrement en points (pas de conversion devise). La CONTRACT_VALUE sera utilisée uniquement dans l'EA MT5, où `SymbolInfoDouble(SYMBOL_TRADE_TICK_VALUE)` retournera la valeur exacte en temps réel.
+**Note CONTRACT_VALUE** : le backtest Python travaille entièrement en points. La CONTRACT_VALUE sera utilisée uniquement dans l'EA MT5, où `SymbolInfoDouble(SYMBOL_TRADE_TICK_VALUE)` retournera la valeur exacte en temps réel.
 
 ---
 
@@ -155,8 +192,12 @@ Logique : si le breakout initial ne crée pas de FVG, on attend un retour dans l
 - Console qui reste ouverte + logging fichier + console
 - **P&L en points uniquement** — pas de conversion devise dans le backtest
 
-### Bug corrigé (pandas 2.x)
-`pandas 2.x` retourne `datetime64[us]` et non `datetime64[ns]`. `.asi8` donne des **microsecondes**, mais `pd.Timestamp.value` donne des nanosecondes. Solution : tout convertir via `.astype('datetime64[us]').astype(np.int64)`. Ne jamais mélanger `.asi8` (µs) et `.value` (ns).
+### Bugs identifiés
+| Bug | Impact | Statut |
+|-----|--------|--------|
+| Timestamp entrée = ouverture N+2 au lieu de fermeture (+1 min) | Nul sur prix/P&L, légère surestimation durée (~7% des trades) | À corriger en v4.1 |
+| pandas 2.x : `.asi8` en µs vs `.value` en ns | Corrigé en v4 | ✅ |
+| `date.fromtimestamp()` dépendant du fuseau local | Corrigé en v4 | ✅ |
 
 ---
 
@@ -193,11 +234,10 @@ Win rate (hors CLOSE_EOD), P&L net en points, profit factor, espérance par trad
 ---
 
 ## Prochaines étapes
-1. ⏳ Attendre la fin de l'analyse exploratoire (~15h30 heure locale)
-2. Valider les paramètres proposés par l'analyse (MAX_SPREAD, MIN_RANGE, EOD_GAP, SESSION_END)
-3. Mettre à jour les paramètres `[ANALYSE]` dans `backtest_range_breakout_v4.py`
-4. Lancer le backtest v4 complet
-5. Analyser les résultats année par année
-6. Tester la variante retest (`USE_RETEST_ENTRY = True`)
-7. Répliquer sur DAX, puis autres actifs
-8. Coder l'EA MQL5
+1. ⏳ Attendre la fin du backtest v4
+2. Analyser les résultats année par année via le summary.csv
+3. Identifier les conditions favorables via les indicateurs contextuels (range_size, ATR, EMA200...)
+4. Corriger le bug de timestamp (v4.1)
+5. Tester la variante retest (`USE_RETEST_ENTRY = True`)
+6. Répliquer sur DAX, puis autres actifs
+7. Coder l'EA MT5
