@@ -77,8 +77,8 @@ Si un FVG se forme depuis le range → entrée dans la direction du breakout ini
 ## Architecture technique du script Python
 
 ### Fichier
-- Script : `bot_files/Robot_range_breakout_9h30_EST_Code.md`
-- Script analyse exploratoire : `bot_files/Robot_range_breakout_9h30_EST_analyse_exploratoire_Code.md`
+- Script : `bot_files/Robot_range_breakout_9h30_EST_backtest_¨Pyton_code.md`
+- Script analyse exploratoire : `bot_files/Robot_range_breakout_9h30_EST_analyse_exploratoire_code.md`
 - Script micro trade de test :  `bot_files/Robot_range_breakout_9h30_EST_micro_trade_Code.md`
 - Version actuelle : v3 (fully vectorized)
 
