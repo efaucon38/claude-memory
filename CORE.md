@@ -102,6 +102,7 @@ Note pour Claude : suggérer à l'utilisateur de changer de mode d'autonomie qua
 | ICT_ROBOT | Multi-actifs | Construction | `projects/ICT_ROBOT.md` |
 | UFUNDED_OVERNIGHT_PORTFOLIO | US Stocks / ETF | Allocation et sizing finalisés | `projects/UFUNDED.md` |
 | **Range Breakout 9h30 EST + FVG** | **NASDAQ (US100), extensible** | **Backtest Python v3 en cours d'exécution** | **`projects/RANGE_BREAKOUT_9H30_EST.md`** |
+| **Range Breakout Polyvalent** | **Multi-actifs (NASDAQ, SP500, DAX...)** | **En développement** | **`projects/RANGE_BREAKOUT_POLYVALENT.md`** |
 
 ## Dernières versions codées (index)
 | Projet | Marché | Statut | Fichier |
@@ -110,6 +111,7 @@ Note pour Claude : suggérer à l'utilisateur de changer de mode d'autonomie qua
 | EA Desk Quant — Ponderation v3.0 OFFENSIF | 7 actifs faible corrélation + Gold | 2 comptes actifs en test démo | `bot_files/Ponderation_code.md` |
 | EA Desk Quant — EA_FX_Universal v2.9 | 7 actifs faible corrélation (propfirm) | Test démo | `bot_files/EA_FX_Universal_code.md` |
 | **Range Breakout 9h30 EST — script Python v3** | **NASDAQ (US100)** | **Backtest en cours** | **`bot_files/Robot_range_breakout_9h30_EST_Code.md`** |
+| **Range Breakout Polyvalent** | **Multi-actifs** | **Script Python opérationnel** | **`bot_files/Robot_range_breakout_polyvalent_code.md`** |
 
 ## Bibliothèque (index)
 | Sujet | Fichier |
@@ -133,6 +135,7 @@ Note pour Claude : suggérer à l'utilisateur de changer de mode d'autonomie qua
 - **Fractionnement d'actions** : ne jamais supposer qu'une plateforme permet l'achat de fractions. Testé négatif sur UFUNDED (lot minimum = 1, sur actions ET ETF).
 - **SL individuel vs garde-fou portefeuille** : bien distinguer le rôle d'un SL par ligne (protection idiosyncratique) de celui d'un palier de drawdown portefeuille (protection contre choc généralisé). Un SL trop serré peut être contre-productif sur une stratégie cœur stable — toujours tester la sensibilité à plusieurs seuils.
 - **Range Breakout 9h30 EST** : backtest Python v3 fully vectorized. Architecture lecture unique obligatoire pour fichiers tick multi-Go. DST US géré dans le code (pas dans les données). Script polyvalent : changer `FILE_PATH`, `ASSET_NAME` et `CONTRACT_VALUE` suffit pour tester un autre actif.
+- **Range Breakout Polyvalent** : moteur générique de backtest range breakout. Gestion timezone via `zoneinfo` (Python 3.9+) — ne jamais recoder le DST manuellement. Deux modes de signal : FVG (pattern 3 bougies) et BREAKOUT (clôture hors range). Paramétrable sur n'importe quel actif et timezone. Scripts dérivés spécialisés (ex: V4/V5/V6 NASDAQ) restent la référence pour les résultats validés.
 
 ## 💡 Idées de stratégies (backlog)
 _(inchangé — conservé tel quel)_
