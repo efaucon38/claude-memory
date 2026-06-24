@@ -129,7 +129,7 @@ EOD_GAP_MINUTES    = 60     # [ANALYSE] Coupure nocturne ~20h GMT, durée ~105 m
 SESSION_END_HOUR   = 23     # [ANALYSE] Confirmé Dukascopy + RaiseFX
 
 # --- Paramètres stratégie ---
-RISK_REWARD        = 2.0    # Ratio TP/SL fixe
+RISK_REWARD        = 3.0    # Ratio TP/SL fixe — 3:1 en V6
 # --- Filtre années (backtest partiel) ---
 # Liste des années à traiter. Mettre [] pour traiter toutes les années.
 # V6 : sélection des années les plus représentatives pour valider R:R 3:1
@@ -972,7 +972,9 @@ def run_backtest():
 
         if not ts_list or day_id < 0: return
         d = day_id_to_date(day_id)
-        if d.weekday() >= 5: return  # Exclure week-end
+
+        # Filtre jour de semaine (utilise WEEKDAY_ALLOWED — 7 booléens)
+        if not WEEKDAY_ALLOWED[d.weekday()]: return
 
         ts_arr  = np.array(ts_list,  dtype=np.int64)
         ask_arr = np.array(ask_list, dtype=np.float32)
@@ -983,8 +985,9 @@ def run_backtest():
             cur_year = d.year
 
         if d.year != cur_year:
-            # Écrire l'année écoulée
-            write_year(cur_year, year_trades, summary_rows, INITIAL_CAPITAL)
+            # Écrire l'année écoulée — seulement si elle est dans YEARS_FILTER
+            if not YEARS_FILTER or cur_year in YEARS_FILTER:
+                write_year(cur_year, year_trades, summary_rows, INITIAL_CAPITAL)
 
             # Réinitialiser pour la nouvelle année
             year_trades = []
@@ -992,7 +995,7 @@ def run_backtest():
             cur_year    = d.year
 
             # Réinitialiser les indicateurs et les ré-alimenter
-            # avec le lookback des jours précédents
+            # avec le lookback des jours précédents (toujours, même années filtrées)
             indic = IndicatorState()
             for lb_ts, lb_ask, lb_bid in lookback_buf:
                 lb_oa, lb_ob = build_1min_candles_us(lb_ts, lb_ask, lb_bid)
@@ -1005,10 +1008,23 @@ def run_backtest():
             log.info(f"\n  Nouvelle année : {d.year} — "
                      f"indicateurs réinitialisés sur {len(lookback_buf)} jours")
 
-        # Stocker dans le lookback pour l'année suivante
+        # Stocker dans le lookback pour l'année suivante (toujours)
         lookback_buf.append((ts_arr.copy(), ask_arr.copy(), bid_arr.copy()))
 
         # ── Traitement du jour ───────────────────────────────────────────
+        # Si l'année n'est pas dans YEARS_FILTER : mise à jour indicateurs
+        # uniquement, pas de trade enregistré
+        if YEARS_FILTER and d.year not in YEARS_FILTER:
+            # Mettre à jour les indicateurs sans enregistrer de trades
+            oa, ob = build_1min_candles_us(ts_arr, ask_arr, bid_arr)
+            ca = oa.values; cb = ob.values
+            for i in range(min(len(ca), len(cb))):
+                indic.update(
+                    (ca[i,0]+cb[i,0])/2, (ca[i,1]+cb[i,1])/2,
+                    (ca[i,2]+cb[i,2])/2, (ca[i,3]+cb[i,3])/2
+                )
+            return
+
         # Clôture forcée au 31/12 : le flag est géré via le passage d'année
         res = process_day(ts_arr, ask_arr, bid_arr, indic, capital, d)
         r   = res.get('result', '')
@@ -1068,7 +1084,8 @@ def run_backtest():
     # Dernier jour et dernière année
     flush_day(cur_day_id, day_ts, day_ask, day_bid)
     if cur_year and year_trades:
-        write_year(cur_year, year_trades, summary_rows, INITIAL_CAPITAL)
+        if not YEARS_FILTER or cur_year in YEARS_FILTER:
+            write_year(cur_year, year_trades, summary_rows, INITIAL_CAPITAL)
 
     prog.done()
 
@@ -1123,3 +1140,4 @@ if __name__ == '__main__':
         log.error(traceback.format_exc())
     finally:
         pause()
+
