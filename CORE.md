@@ -89,6 +89,7 @@ Note pour Claude : suggérer à l'utilisateur de changer de mode d'autonomie qua
 8. **Spécificités broker par actif** : toujours vérifier les spécificités réelles du broker pour chaque actif cible (tick value, spread, marge, horaires) avant déploiement.
 9. **pandas 2.x datetime64[us]** : `.asi8` retourne des microsecondes, pas des nanosecondes — ne jamais mélanger les unités dans une même comparaison temporelle.
 10. **Boucle Python sur les ticks** : toujours vectoriser avec numpy — une boucle `for` sur des millions de ticks est rédhibitoire en performance (facteur ×1000 vs vectorisé).
+11. **gestion de la console de commande** : toujours paramétrer les scripts pour que la console reste ouverte même en cas de problème, et que les anomalies soient journalisées avec un affichage dansla console et dans un fichier log dédié
 
 ## Projets (index)
 | Projet | Marché | Statut | Fichier |
