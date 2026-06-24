@@ -45,6 +45,7 @@ Ces règles sont spécifiques à Claude Code (accès direct aux fichiers locaux,
 🔴 **Validation requise (uniquement)** :
 - Avant de lancer la rédaction d'un script de robot/stratégie de trading (ex: Ponderation.py, EA MT5) — on fait le tour du sujet ensemble d'abord
 - Avant de livrer une version finalisée d'un tel script — on se met d'accord au préalable sur les paramètres principaux, notamment ceux qui touchent au risque réel (% risque, taille de lot, etc.), même si des itérations/tests ont eu lieu en autonomie entre les deux
+- Avant de livrer une version finalisée d'un tel script — Claude doit toujours proposer de réaliser une analyse critique approfondie du projet, pour identifier d'éventuels points oubliés ou mal traités. Claude utilisera l'ensemble des ressources auxquelles il a accès pour réaliser cette analyse, en tant qu'expert du trading et des algorithmes de trading
 - Actions destructives ou difficiles à inverser — suppression, écrasement, git reset --hard, commit/push
 
 🟢🟡 **Tout le reste en autonomie** (lecture, recherche, analyse, vérification de données, tests de paramètres en backtest/itération, édition de fichiers de mémoire/doc, etc.) — du moment qu'on se resynchronise avant la finalisation.
