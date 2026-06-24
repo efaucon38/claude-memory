@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================================
-BACKTEST V4 — STRATÉGIE RANGE BREAKOUT 9H30 EST + FAIR VALUE GAP
+BACKTEST V5 — STRATÉGIE RANGE BREAKOUT 9H30 EST + FAIR VALUE GAP
 ================================================================================
 
 DESCRIPTION
@@ -57,10 +57,14 @@ au moment de l'entrée.
 
 VARIANTE RETEST (USE_RETEST_ENTRY)
 -----------------------------------
-Si True : si le breakout initial ne crée pas de FVG, on attend un retour
-dans le range. Si un FVG se forme depuis le range → entrée dans la
-direction du breakout initial.
-Désactivé en V1. Activer uniquement après validation des résultats de base.
+Si True (activé par défaut en V5) :
+  Si le breakout initial (N+1 ferme au-delà du range) ne génère pas de FVG
+  avec N+2, on mémorise la direction du breakout et on continue à surveiller.
+  Si le prix revient dans le range et qu'un nouveau pattern FVG se forme
+  depuis le niveau du range → entrée dans la direction du breakout initial.
+  SL : bas/haut de la bougie de displacement du retest (même logique).
+  La fenêtre de recherche reste 90 minutes depuis la fin du range.
+Si False : comportement identique à V4 (breakout direct uniquement).
 
 POINTS DE VIGILANCE
 -------------------
@@ -91,20 +95,48 @@ import numpy as np
 # ► CONFIG — À MODIFIER SELON L'ACTIF
 # ==============================================================================
 
+# --- Identifiants du run ---
+# RUN_ID      : label lisible — modifier pour chaque nouvelle exécution
+#               Exemples : "v5_retest", "v5_no_retest", "v5_spread2"
+# MAGIC_NUMBER : identifiant unique codé en dur — NE PAS GÉNÉRER AUTOMATIQUEMENT
+#               Changer manuellement si on veut isoler un nouveau run.
+#               Intégré dans TOUS les noms de fichiers (CSV + log).
+#               Permet de retrouver exactement quels exports correspondent
+#               à quelle exécution, même après plusieurs runs.
+#               À reporter tel quel dans l'EA MT5 comme magic number des ordres
+#               (permet de tracer les ordres passés par ce robot spécifiquement).
+RUN_ID       = "v5_retest"
+MAGIC_NUMBER = "A1B2C3D4"   # ← Changer manuellement pour chaque nouveau run
+
 # --- Fichier de données [MANUEL] ---
 FILE_PATH  = r"C:\Users\ericf\Documents\Trading algo\Tick Data Suite\2011-10-01 - 2026-05-31 - USA_100_Technical_Index_GMT+0_NO-DST ticks.csv"
 ASSET_NAME = "NASDAQ (US100)"
 
 # --- Paramètres issus de l'analyse exploratoire [ANALYSE] ---
-# Valeurs à mettre à jour après réception du JSON de l'analyse exploratoire
-MAX_SPREAD_POINTS  = 4.0    # [ANALYSE] Spread max toléré à l'entrée (points)
-MIN_RANGE_POINTS   = 10.0   # [ANALYSE] Range 5min minimum (points)
-EOD_GAP_MINUTES    = 30     # [ANALYSE] Gap ticks → clôture CLOSE_EOD (minutes)
-SESSION_END_HOUR   = 23     # [ANALYSE] Heure GMT du dernier tick habituel
+# Valeurs validées le 2026-06-24 sur données NASDAQ 2012-2026 (28.77 Go)
+# Source : analyse_NASDAQ_US100_resume.json
+#
+# MAX_SPREAD_POINTS : p95 spread ouverture (2.20 pts) + marge → 3.0 pts
+#   Filtre les pics anormaux (max observé 20.8 pts) sans impacter les jours normaux
+#   p99 global = 2.58 pts, max récent (2022-2026) = 2.81 pts
+#
+# MIN_RANGE_POINTS : valeur conservative (option B validée)
+#   Range médian train 12.93 pts, test 52.78 pts (marché × 3.3 en prix)
+#   5 pts laisse le backtest révéler empiriquement le seuil optimal
+#   Analyser range_size_pts et range_atr_ratio dans les résultats
+#
+# EOD_GAP_MINUTES : coupure nocturne à ~20h GMT, durée ~105 min
+#   Trades résolus bien avant — 60 min largement suffisant
+#
+# SESSION_END_HOUR : dernier tick à 23h GMT (confirmé Dukascopy + RaiseFX)
+MAX_SPREAD_POINTS  = 3.0    # [ANALYSE] p95 ouverture × 1.2 — validé 2026-06-24
+MIN_RANGE_POINTS   = 5.0    # [ANALYSE] Conservative — affiner post-backtest
+EOD_GAP_MINUTES    = 60     # [ANALYSE] Coupure nocturne ~20h GMT, durée ~105 min
+SESSION_END_HOUR   = 23     # [ANALYSE] Confirmé Dukascopy + RaiseFX
 
 # --- Paramètres stratégie ---
 RISK_REWARD        = 2.0    # Ratio TP/SL fixe
-USE_RETEST_ENTRY   = False  # Variante retest — NE PAS ACTIVER EN V1
+USE_RETEST_ENTRY   = True   # Variante retest — activée en V5 (False = comportement V4)
 
 # --- Paramètres capital ---
 INITIAL_CAPITAL    = 10_000.0  # Unités abstraites, réinitialisé chaque année
@@ -131,7 +163,7 @@ OUTPUT_DIR    = os.path.dirname(os.path.abspath(__file__))
 # ==============================================================================
 
 LOG_PATH = os.path.join(OUTPUT_DIR,
-    f"backtest_{ASSET_NAME.split()[0]}_v4.log")
+    f"backtest_{ASSET_NAME.split()[0]}_{RUN_ID}_{MAGIC_NUMBER}.log")
 
 logging.basicConfig(
     level    = logging.INFO,
@@ -528,10 +560,14 @@ def process_day(ts_us, ask, bid, indic: IndicatorState,
     cb    = ob.values[(ob_idx >= re_us) & (ob_idx < end_us)][ib]
     ts_c  = common_us
 
-    # Snapshot N sera pris juste avant de trouver le setup
-    snap_n_taken = False
-    snap_n       = {}
-    setup        = None
+    snap_n  = {}
+    setup   = None
+
+    # État de la variante retest :
+    # Si un breakout sans FVG est détecté, on mémorise sa direction
+    # et on attend un retour dans le range suivi d'un FVG.
+    retest_direction = None   # 'BUY' ou 'SELL' si breakout sans FVG détecté
+    retest_ref_candle_idx = None  # indice de la bougie de breakout initial
 
     for i in range(len(common_us) - 2):
         # Mise à jour indicateurs sur bougie N
@@ -550,31 +586,81 @@ def process_day(ts_us, ask, bid, indic: IndicatorState,
         spread = float(n2_c_ask - n2_c_bid)
         if spread > MAX_SPREAD_POINTS: continue
 
-        # FVG BUY
+        # ── SETUP DIRECT : FVG BUY ────────────────────────────────────
         if n1_c_ask > range_h and n1_h_ask > range_h and n2_l_bid > n_h_ask:
             sl_pts = float(n2_c_ask - n1_l_bid)
             if sl_pts > 0:
-                # Snapshot N (avant la bougie N+1 de displacement)
-                price_for_snap = float(n2_c_ask)
-                snap_n = indic.snapshot(price_for_snap, 'BUY', '')
+                snap_n = indic.snapshot(float(n2_c_ask), 'BUY', '')
                 setup  = ('BUY', float(n2_c_ask), float(n1_l_bid),
-                          spread, n2_ts, float(n2_l_bid - n_h_ask))
+                          spread, n2_ts, float(n2_l_bid - n_h_ask), 'DIRECT')
                 break
 
-        # FVG SELL
+        # ── SETUP DIRECT : FVG SELL ───────────────────────────────────
         if n1_c_bid < range_l and n1_l_bid < range_l and n2_h_ask < n_l_bid:
             sl_pts = float(n1_h_ask - n2_c_bid)
             if sl_pts > 0:
-                price_for_snap = float(n2_c_bid)
-                snap_n = indic.snapshot(price_for_snap, 'SELL', '')
+                snap_n = indic.snapshot(float(n2_c_bid), 'SELL', '')
                 setup  = ('SELL', float(n2_c_bid), float(n1_h_ask),
-                          spread, n2_ts, float(n_l_bid - n2_h_ask))
+                          spread, n2_ts, float(n_l_bid - n2_h_ask), 'DIRECT')
                 break
+
+        # ── VARIANTE RETEST ───────────────────────────────────────────
+        if USE_RETEST_ENTRY:
+
+            # Étape A : détecter un breakout sans FVG et mémoriser la direction
+            if retest_direction is None:
+                # Breakout haussier sans FVG : N+1 ferme au-dessus du range
+                # mais Low(N+2) <= High(N) → pas de gap
+                if (n1_c_ask > range_h and n1_h_ask > range_h and
+                        n2_l_bid <= n_h_ask):
+                    retest_direction     = 'BUY'
+                    retest_ref_candle_idx = i + 1   # N+1 = bougie de breakout
+
+                # Breakout baissier sans FVG
+                elif (n1_c_bid < range_l and n1_l_bid < range_l and
+                        n2_h_ask >= n_l_bid):
+                    retest_direction     = 'SELL'
+                    retest_ref_candle_idx = i + 1
+
+            # Étape B : si breakout sans FVG mémorisé, chercher le retest
+            elif retest_direction is not None:
+                # Vérifier que le prix est revenu dans le range
+                # (bougie N actuelle a son close dans le range)
+                n_close_ask = ca[i, 3]
+                n_close_bid = cb[i, 3]
+                price_in_range = (range_l <= n_close_bid <= range_h or
+                                  range_l <= n_close_ask <= range_h)
+
+                if price_in_range:
+                    # Chercher un FVG depuis le range dans la direction du breakout
+                    if retest_direction == 'BUY':
+                        # FVG BUY depuis le range
+                        if (n1_c_ask > range_h and n1_h_ask > range_h and
+                                n2_l_bid > n_h_ask):
+                            sl_pts = float(n2_c_ask - n1_l_bid)
+                            if sl_pts > 0:
+                                snap_n = indic.snapshot(float(n2_c_ask), 'BUY', '')
+                                setup  = ('BUY', float(n2_c_ask), float(n1_l_bid),
+                                          spread, n2_ts,
+                                          float(n2_l_bid - n_h_ask), 'RETEST')
+                                break
+
+                    elif retest_direction == 'SELL':
+                        # FVG SELL depuis le range
+                        if (n1_c_bid < range_l and n1_l_bid < range_l and
+                                n2_h_ask < n_l_bid):
+                            sl_pts = float(n1_h_ask - n2_c_bid)
+                            if sl_pts > 0:
+                                snap_n = indic.snapshot(float(n2_c_bid), 'SELL', '')
+                                setup  = ('SELL', float(n2_c_bid), float(n1_h_ask),
+                                          spread, n2_ts,
+                                          float(n_l_bid - n2_h_ask), 'RETEST')
+                                break
 
     if setup is None:
         return {'date': d, 'result': 'NO_SETUP', 'capital_after': capital}
 
-    direction, entry, sl_price, spread_entry, n2_ts, fvg_size = setup
+    direction, entry, sl_price, spread_entry, n2_ts, fvg_size, setup_type = setup
     sl_pts   = abs(entry - sl_price)
     tp_price = entry + RISK_REWARD*sl_pts if direction == 'BUY' else entry - RISK_REWARD*sl_pts
 
@@ -625,7 +711,7 @@ def process_day(ts_us, ask, bid, indic: IndicatorState,
         'week_of_month'   : (d.day - 1) // 7 + 1,
         # Trade
         'direction'       : direction,
-        'entry_time_gmt'  : pd.Timestamp(n2_ts,   unit='us'),
+        'entry_time_gmt'  : pd.Timestamp(n2_ts + US_PER_MIN, unit='us'),  # fermeture N+2
         'exit_time_gmt'   : pd.Timestamp(exit_us, unit='us') if exit_us else None,
         'duration_min'    : round(duration, 2) if duration else None,
         # Prix
@@ -644,6 +730,7 @@ def process_day(ts_us, ask, bid, indic: IndicatorState,
         # Résultat
         'result'          : result,
         'close_eod'       : result == 'CLOSE_EOD',
+        'setup_type'      : setup_type,   # 'DIRECT' ou 'RETEST'
         # Contexte setup
         'range_size_pts'  : round(range_sz, 4),
         'fvg_size_pts'    : round(fvg_size, 4),
@@ -795,7 +882,7 @@ def write_year(year: int, trades: list, summary_rows: list,
     if not trades: return
 
     slug    = ASSET_NAME.replace(' ','_').replace('(','').replace(')','').replace('/','')
-    prefix  = os.path.join(OUTPUT_DIR, f"backtest_{slug}_{year}")
+    prefix  = os.path.join(OUTPUT_DIR, f"backtest_{slug}_{RUN_ID}_{MAGIC_NUMBER}_{year}")
 
     # CSV trades
     df_trades = pd.DataFrame(trades)
@@ -817,7 +904,7 @@ def write_year(year: int, trades: list, summary_rows: list,
 
     # Mise à jour summary global (écrit à chaque année)
     summary_path = os.path.join(
-        OUTPUT_DIR, f"backtest_{slug}_summary.csv")
+        OUTPUT_DIR, f"backtest_{slug}_{RUN_ID}_{MAGIC_NUMBER}_summary.csv")
     pd.DataFrame(summary_rows).to_csv(summary_path, index=False)
 
     log.info(f"\n  ── Année {year} — fichiers écrits ──")
@@ -832,16 +919,17 @@ def write_year(year: int, trades: list, summary_rows: list,
 
 def run_backtest():
     log.info("="*70)
-    log.info(f" BACKTEST V4 — {ASSET_NAME}")
+    log.info(f" BACKTEST V5 — {ASSET_NAME}  (retest={'OUI' if USE_RETEST_ENTRY else 'NON'})")
     log.info(f" Capital : {INITIAL_CAPITAL:,.0f} pts/an  |  "
              f"Risque : {RISK_PERCENT}%  |  R:R {RISK_REWARD}:1")
     log.info(f" Fichier : {FILE_PATH}")
-    log.info(f" Variante retest : {'OUI' if USE_RETEST_ENTRY else 'NON'}")
+    log.info(f" Variante retest : {'OUI — setups DIRECT + RETEST' if USE_RETEST_ENTRY else 'NON — setups DIRECT uniquement'}")
     log.info(f" Filtres — Spread max : {MAX_SPREAD_POINTS} pts  |  "
              f"Range min : {MIN_RANGE_POINTS} pts")
     log.info(f" EOD gap : {EOD_GAP_MINUTES} min")
-    log.info(f" ATTENTION : paramètres [ANALYSE] à mettre à jour après")
-    log.info(f"             réception du JSON de l'analyse exploratoire")
+    log.info(f" Paramètres validés le 2026-06-24 sur données NASDAQ 2012-2026")
+    log.info(f" RUN_ID      : {RUN_ID}")
+    log.info(f" MAGIC_NUMBER: {MAGIC_NUMBER}")
     log.info("="*70)
 
     if not os.path.exists(FILE_PATH):
@@ -943,8 +1031,12 @@ def run_backtest():
         engine='c'
     )
 
+    # Taille moyenne réelle par ligne (calculée une fois sur le fichier)
+    # Format : "DD.MM.YYYY HH:MM:SS.mmm,ask,bid\n" ≈ 33 octets en moyenne
+    avg_bytes_per_line = file_size // max(1, file_size // 33)
+
     for chunk in reader:
-        bytes_read += len(chunk) * 28
+        bytes_read = min(bytes_read + len(chunk) * 33, file_size)
         prog.update(bytes_read,
                     extra=f"| {day_id_to_date(cur_day_id) if cur_day_id>=0 else '...'}"
                           f" | {cur_year or '...'} | trades:{len(year_trades)}")
@@ -990,7 +1082,7 @@ def run_backtest():
         year = row.get('year')
         if year:
             slug = ASSET_NAME.replace(' ','_').replace('(','').replace(')','').replace('/','')
-            f    = os.path.join(OUTPUT_DIR, f"backtest_{slug}_{year}_trades.csv")
+            f    = os.path.join(OUTPUT_DIR, f"backtest_{slug}_{RUN_ID}_{MAGIC_NUMBER}_{year}_trades.csv")
             if os.path.exists(f):
                 df = pd.read_csv(f)
                 all_trades.extend(df.to_dict('records'))
@@ -1010,9 +1102,9 @@ def run_backtest():
 
     slug = ASSET_NAME.replace(' ','_').replace('(','').replace(')','').replace('/','')
     log.info(f"\n Fichiers générés dans : {OUTPUT_DIR}")
-    log.info(f"   backtest_{slug}_XXXX_trades.csv   (par année)")
-    log.info(f"   backtest_{slug}_XXXX_monthly.csv  (par année)")
-    log.info(f"   backtest_{slug}_summary.csv        (toutes années)")
+    log.info(f"   backtest_{slug}_{RUN_ID}_{MAGIC_NUMBER}_XXXX_trades.csv")
+    log.info(f"   backtest_{slug}_{RUN_ID}_{MAGIC_NUMBER}_XXXX_monthly.csv")
+    log.info(f"   backtest_{slug}_{RUN_ID}_{MAGIC_NUMBER}_summary.csv")
     log.info(f"   {LOG_PATH}")
     log.info(f"\n{'='*70}")
     log.info(f" Backtest terminé.")
