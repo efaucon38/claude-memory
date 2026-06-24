@@ -59,7 +59,7 @@ _Démarré : 2026-06-17_ — _Dernière mise à jour : 2026-06-17_
 
 Fichiers : `final_selection_B.csv`, `sizing_allocation_B_FINAL_with_joker.csv`
 
-### ✅ Sizing réel exécuté (prix UFUNDED du 17/06/2026)
+### ✅ Sizing prévisonnel estimé (prix UFUNDED du 17/06/2026)
 | Ticker | Prix Ask | Actions | Valeur |
 |---|---|---|---|
 | DUK | 123.79 | 12 | 1,485.48 |
@@ -77,6 +77,25 @@ Fichiers : `final_selection_B.csv`, `sizing_allocation_B_FINAL_with_joker.csv`
 | XLP (joker) | 83.64 | 14 | 1,170.96 |
 
 Total investi : $17,989.55 — Cash résiduel : $10.45 (0.06%) — Commission totale à l'achat : $16.25
+
+### ✅ Sizing réel (prix UFUNDED du 24/06/2026)
+| Ticker | Qté | Prix achat | Stop-Loss | Valeur investie | SL implicite |
+|---|---|---|---|---|---|
+| DUK | 12 | 125.94 | 100.70 | $1,511.28 | -20.04% |
+| JNJ | 7 | 241.78 | 191.80 | $1,692.46 | -20.67% |
+| KO | 2 | 181.13 | 64.96 | $1,703.73 | -19.93% |
+| PG | 10 | 152.15 | 122.10 | $1,521.50 | -19.75% |
+| CME | 5 | 240.98 | 192.60 | $1,204.90 | -20.07% |
+| PEP | 10 | 142.85 | 114.33 | $1,428.50 | -19.96% |
+| MCD | 5 | 272.45 | 218.16 | $1,362.25 | -19.92% |
+| NVS | 9 | 154.47 | 123.51 | $1,390.23 | -20.04% |
+| WM | 6 | 223.16 | 178.62 | $1,338.96 | -19.96% |
+| O | 2 | 461.85 | 49.50 | $1,484.40 | -19.97% |
+| VZ | 28 | 45.90 | 36.80 | $1,285.20 | -19.83% |
+| CBOE | 4 | 262.88 | 210.35 | $1,051.52 | -19.97% |
+| XLP | 12 | 84.31 | 67.40 | $1,011.72 | -20.07% |
+
+TOTAL $17,986.65 investis — $13.35 de cash résiduel (0.07%). 
 
 ### ✅ Gestion du risque — règles figées
 - **Stop-Loss catastrophe : -20% du prix d'entrée, sur les 13 lignes sans exception.** Pas de Take-Profit par ligne (contre-productif pour un cœur défensif, validé par simulation). Pas de trailing stop (non dispo nativement, et son rôle est de toute façon repris par le SL large + le palier de drawdown global).
@@ -113,4 +132,5 @@ Total investi : $17,989.55 — Cash résiduel : $10.45 (0.06%) — Commission to
 - Le coût en commissions du scénario "rebalancement mensuel" n'a jamais été chiffré précisément (suspecté significatif, mais le choix "sans rebalancement" a été acté avant ce calcul — non bloquant puisque la décision finale ne nécessitait plus cette donnée)
 - Le remaniement complet à chaque payout n'a pas pu être simulé de façon rétrospectivement fidèle (impossible de "rejouer" le pipeline avec les données de marché telles qu'elles étaient à chaque date passée) — le backtest des payouts utilise l'allocation B figée comme proxy
 - Swap overnight toujours non quantifié précisément par titre (mentionné comme variable dans le User Agreement, jamais creusé en détail — risque mineur, non bloquant à ce stade)
-- Statut au 17/06/2026 : allocation définie et sizing calculé, **ordres en cours de passage par l'utilisateur** (12 lignes principales puis XLP en fonction du cash réellement disponible après exécution)
+- Statut au 17/06/2026 : allocation définie et sizing calculé,
+- Portefeuille ouvert le 24/06/2026 — 13 positions actives (12 lignes principales puis XLP en fonction du cash réellement disponible après exécution)
