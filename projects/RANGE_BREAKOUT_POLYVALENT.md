@@ -1,13 +1,10 @@
 # PROJET — Range Breakout Polyvalent
-_Last updated: 2026-06-24_
+_Last updated: 2026-06-25_
 
 ## Résumé
-Moteur générique de backtest pour toute stratégie de type "range breakout".
-Conçu pour tester différentes configurations sur n'importe quel actif
-disposant de données tick Tick Data Suite (GMT+0, NO-DST).
+Moteur générique de backtest pour toute stratégie de type "range breakout". Conçu pour tester différentes configurations sur n'importe quel actif disposant de données tick Tick Data Suite (GMT+0, NO-DST).
 
-Dérive du projet Range Breakout 9h30 EST + FVG (NASDAQ), dont il généralise
-la logique à tout actif, timezone, mode de signal et timeframe, avec toutefois une différence sur l'entrée (sortie de range simple) en mode "BREAKOUT" (entrée après FGV en mode "FVG").
+Dérive du projet Range Breakout 9h30 EST + FVG (NASDAQ), dont il généralise la logique à tout actif, timezone, mode de signal et timeframe. Deux modes de signal : FVG (pattern 3 bougies avec gap) et BREAKOUT (clôture hors range).
 
 ---
 
@@ -15,11 +12,13 @@ la logique à tout actif, timezone, mode de signal et timeframe, avec toutefois 
 | Phase | Statut |
 |-------|--------|
 | Script Python polyvalent | ✅ Opérationnel — testé en modes FVG et BREAKOUT |
-| Backtest NASDAQ (référence) | ✅ Effectué en V4/V5/V6 — résultats disponibles |
-| Analyse exploratoire SP500 | ⏳ En cours d'exécution |
-| Backtest SP500 | 🔜 En attente des paramètres de l'analyse exploratoire |
+| Script extract_years.py | ✅ Opérationnel — découpe les gros fichiers historiques |
+| Backtest NASDAQ V4/V5/V6 | ✅ Terminé — résultats analysés |
+| Analyse exploratoire SP500 | ✅ Terminée |
+| Backtest SP500 (6 années) | ✅ Terminé — résultats analysés |
+| Analyse exploratoire Gold | ⏳ En cours — fichier extrait 2015-2026 en création |
+| Backtest Gold | 🔜 En attente de l'analyse exploratoire |
 | Backtest US30 (Dow Jones) | 🔜 À planifier |
-| Backtest XAUUSD (Or) | 🔜 À planifier |
 | Backtest DAX (ouverture EU) | 🔜 À planifier |
 | Codage EA MT5 | 🔜 À venir |
 
@@ -30,72 +29,137 @@ la logique à tout actif, timezone, mode de signal et timeframe, avec toutefois 
 |---------|------|
 | `bot_files/Robot_range_breakout_polyvalent_code.md` | Code source Python du moteur |
 | `bot_files/Robot_range_breakout_9h30_EST_analyse_exploratoire_code.md` | Script d'analyse exploratoire (à adapter par actif) |
+| `bot_files/extract_years_code.md` | Outil utilitaire — extraction d'une plage d'années depuis un gros fichier tick |
+
+---
+
+## Résultats des backtests (R:R 3:1, mode FVG, 6 années sélectionnées)
+
+### NASDAQ (US100) — V6
+| Année | Trades | Win rate | P&L net (pts) |
+|-------|--------|----------|---------------|
+| 2012 | 130 | 28.5% | +34.5 ✅ |
+| 2018 | 249 | 18.9% | -982.4 ❌ |
+| 2020 | 249 | 20.5% | -861.1 ❌ |
+| 2022 | 255 | 20.8% | -717.9 ❌ |
+| 2023 | 251 | 19.5% | -1117.8 ❌ |
+| 2024 | 248 | 27.4% | +1306.6 ✅ |
+| **TOTAL** | **1 382** | **22.1%** | **-2 338.1** |
+
+### S&P 500 (US500) — v1_sp500_fvg_rr3
+| Année | Trades | Win rate | P&L net (pts) |
+|-------|--------|----------|---------------|
+| 2012 | 6 | 33.3% | +10.3 ✅ |
+| 2018 | 242 | 17.4% | -254.3 ❌ |
+| 2020 | 236 | 17.4% | -405.8 ❌ |
+| 2022 | 248 | 21.4% | -65.0 ❌ |
+| 2023 | 241 | 20.7% | -159.8 ❌ |
+| 2024 | 240 | 23.8% | +84.5 ✅ |
+| **TOTAL** | **1 213** | **20.2%** | **-790.1** |
+
+### Comparatif NASDAQ vs SP500
+- **SP500 perd 3× moins** que le NASDAQ (-790 vs -2 338 pts) malgré un WR légèrement inférieur — effet des SL plus petits en valeur absolue
+- Les **deux actifs sont sous le seuil de rentabilité** (25% pour R:R 3:1)
+- **SP500 2012 : seulement 6 trades** — range trop petit (médiane 2.8 pts, MIN_RANGE = 2 pts), marché trop calme
+
+### Conclusions intermédiaires
+- Win rate systématiquement sous 25% sur R:R 3:1 — problème structurel sur ces deux actifs
+- **Vendredi = seul jour profitable sur NASDAQ** (WR 26.4%, P&L +399 pts) — piste intéressante
+- **Mercredi = pire jour sur les deux actifs** (NASDAQ 21.9%, SP500 17.6%)
+- **SP500 BUY meilleur que SELL** (-368 vs -806 pts) — inverse attendu
+- **SP500 range optimal Q3 (7-9 pts)** — quasi à l'équilibre (-19 pts), les très petits et très grands ranges sont mauvais
+- La stratégie est plus efficace sur les marchés **volatils** (ranges > 30 pts sur NASDAQ en 2024)
+- **Gold = prochain actif à tester** — forte réactivité à 9h30 EST, volatilité élevée, FVG souvent nets
+
+---
+
+## Paramètres validés par actif
+
+### NASDAQ (US100)
+| Paramètre | Valeur | Source |
+|-----------|--------|--------|
+| `MAX_SPREAD_POINTS` | 3.0 pts | Analyse exploratoire 2026-06-24 |
+| `MIN_RANGE_POINTS` | 5.0 pts | Conservative — à affiner |
+| `EOD_GAP_MINUTES` | 60 min | Coupure 20h GMT, ~105 min |
+| `SESSION_END_HOUR` | 23h GMT | Confirmé |
+| `RANGE_TIMEZONE` | America/New_York | — |
+| `RANGE_START_LOCAL` | (9, 30) | — |
+| `RANGE_END_LOCAL` | (9, 35) | — |
+
+### S&P 500 (US500)
+| Paramètre | Valeur | Source |
+|-----------|--------|--------|
+| `MAX_SPREAD_POINTS` | 1.0 pt | Analyse exploratoire 2026-06-25 — p95=0.655 |
+| `MIN_RANGE_POINTS` | 2.0 pts | Conservative — affiner (Q3 optimal = 7-9 pts) |
+| `EOD_GAP_MINUTES` | 60 min | Coupure 20h GMT, ~105 min |
+| `SESSION_END_HOUR` | 23h GMT | Confirmé |
+| `RANGE_TIMEZONE` | America/New_York | — |
+| `RANGE_START_LOCAL` | (9, 30) | — |
+| `RANGE_END_LOCAL` | (9, 35) | — |
+
+### Gold (XAUUSD) — en cours
+| Paramètre | Valeur | Source |
+|-----------|--------|--------|
+| Tous paramètres | ⏳ En attente | Analyse exploratoire en cours (2015-2025) |
+| Fichier source | `2015-01-01 - 2026-12-31 - XAUUSD_GMT+0_NO-DST ticks.csv` | Extrait via extract_years.py |
 
 ---
 
 ## Guide d'utilisation — Version Python
 
-### Étape 1 — Analyse exploratoire (obligatoire pour chaque nouvel actif)
-
-Avant tout backtest, lancer `analyse_exploratoire.py` sur les données tick
-de l'actif cible. Ce script produit un fichier JSON avec les valeurs
-recommandées pour les paramètres clés.
+### Étape 0 — Gros fichiers historiques (> 10 Go)
+Pour les actifs avec un long historique (Gold 22 Go, etc.), extraire d'abord une sous-période :
 
 ```bash
-python analyse_exploratoire_SP500.py
+python extract_years.py
 ```
 
-**Ce qu'il faut adapter dans le script d'analyse :**
-- `FILE_PATH` → chemin vers le fichier CSV de l'actif
-- `ASSET_NAME` → nom lisible de l'actif
+Configurer `YEAR_START`, `YEAR_END` et `FILE_PATH` dans le script. Le fichier extrait est sauvegardé dans le même dossier que la source avec un nom normalisé. Placer ensuite le fichier extrait dans le dossier Tick Data Suite.
+
+### Étape 1 — Analyse exploratoire (obligatoire pour chaque nouvel actif)
+
+```bash
+python analyse_exploratoire_ACTIF.py
+```
+
+**À adapter dans le script :**
+- `FILE_PATH` → chemin vers le fichier CSV
+- `ASSET_NAME` → nom lisible
+- `YEARS_FILTER` → liste d'années si analyse partielle ([] = toutes)
 
 **Ce que l'analyse fournit :**
-- `MAX_SPREAD_POINTS` : p95 du spread à l'ouverture × 1.2
-- `MIN_RANGE_POINTS` : p10 du range × 0.8 (valeur conservative)
-- `EOD_GAP_MINUTES` : 50% de la durée médiane de coupure nocturne
-- Distribution du spread par heure GMT (pour vérifier la liquidité à l'heure cible)
-- Alertes walk-forward si les distributions train/test diffèrent > 30%
-
----
+- `MAX_SPREAD_POINTS` : p95 spread ouverture × 1.2
+- `MIN_RANGE_POINTS` : p10 range × 0.8 (conservative)
+- `EOD_GAP_MINUTES` : 50% durée médiane coupure nocturne
+- Alertes walk-forward si distributions train/test diffèrent > 30%
 
 ### Étape 2 — Configuration du moteur
 
-Ouvrir `range_breakout_polyvalent.py` et modifier **uniquement la section CONFIG** :
+Modifier uniquement la section CONFIG de `range_breakout_polyvalent.py` :
 
 ```python
-# --- Identifiants du run ---
-RUN_ID       = "v1_sp500_fvg_rr3"   # label lisible de la configuration
-MAGIC_NUMBER = "D4E5F6G7"            # changer à chaque nouveau run
+RUN_ID       = "v1_gold_fvg_rr3"
+MAGIC_NUMBER = "E5F6G7H8"       # Changer à chaque nouveau run — reporter dans l'EA MT5
 
-# --- Fichier de données ---
-FILE_PATH  = r"C:\...\USA_500_Index_GMT+0_NO-DST ticks.csv"
-ASSET_NAME = "S&P 500 (US500)"
+FILE_PATH  = r"C:\...\2015-01-01 - 2026-12-31 - XAUUSD_GMT+0_NO-DST ticks.csv"
+ASSET_NAME = "Gold (XAUUSD)"
 
-# --- Horaires ---
-RANGE_TIMEZONE    = "America/New_York"  # timezone zoneinfo
-RANGE_START_LOCAL = (9, 30)             # heure locale du marché
+RANGE_TIMEZONE    = "America/New_York"
+RANGE_START_LOCAL = (9, 30)
 RANGE_END_LOCAL   = (9, 35)
 
-# --- Signal ---
-SIGNAL_MODE          = "FVG"      # "FVG" ou "BREAKOUT"
-SIGNAL_TIMEFRAME_MIN = 1          # timeframe d'analyse en minutes
-SIGNAL_WINDOW_MIN    = 90         # fenêtre temporelle de recherche après le range, en minutes
+SIGNAL_MODE          = "FVG"     # "FVG" ou "BREAKOUT"
+SIGNAL_TIMEFRAME_MIN = 1
+SIGNAL_WINDOW_MIN    = 90
+TRADE_DIRECTION      = "BOTH"    # "BOTH", "BUY_ONLY", "SELL_ONLY"
+RISK_REWARD          = 3.0
+MAX_TRADE_DURATION_MIN = 240
 
-# --- Direction ---
-TRADE_DIRECTION = "BOTH"          # "BOTH", "BUY_ONLY", "SELL_ONLY"
-
-# --- Stratégie ---
-RISK_REWARD            = 3.0
-MAX_TRADE_DURATION_MIN = 240      # 0 = pas de limite
-
-# --- Filtres ---
 MAX_SPREAD_POINTS = X.X   # issu de l'analyse exploratoire
 MIN_RANGE_POINTS  = X.X   # issu de l'analyse exploratoire
-EOD_GAP_MINUTES   = X     # issu de l'analyse exploratoire
+EOD_GAP_MINUTES   = X
 YEARS_FILTER      = []    # [] = toutes les années
 ```
-
----
 
 ### Étape 3 — Lancement
 
@@ -103,120 +167,76 @@ YEARS_FILTER      = []    # [] = toutes les années
 python range_breakout_polyvalent.py
 ```
 
-**Suivi en temps réel :**
-La barre de progression affiche l'année en cours, le mois, la vitesse
-de lecture et l'ETA pour l'année. Les résultats de chaque année sont
-écrits sur disque immédiatement — pas besoin d'attendre la fin.
+La barre de progression affiche l'année en cours, le mois, la vitesse et l'ETA par année. Les résultats sont écrits sur disque après chaque année.
 
 **Fichiers générés :**
-rng_ASSET_RUN_ID_MAGIC_XXXX_trades.csv    ← détail par trade + indicateurs
+
+rng_ASSET_RUN_ID_MAGIC_XXXX_trades.csv    ← détail par trade + indicateurs contextuels
 
 rng_ASSET_RUN_ID_MAGIC_XXXX_monthly.csv   ← métriques par mois
 
-rng_ASSET_RUN_ID_MAGIC_MAGIC_summary.csv  ← 1 ligne par année (mis à jour en continu)
+rng_ASSET_RUN_ID_MAGIC_summary.csv        ← 1 ligne par année (mis à jour en continu)
 
-rng_ASSET_RUN_ID_MAGIC.log                ← log complet
-
----
-
-### Workflow de déploiement sur un nouvel actif
-
-Récupérer les données tick (Tick Data Suite, GMT+0, NO-DST)
-Adapter et lancer analyse_exploratoire.py
-Valider les paramètres avec Claude (JSON de l'analyse)
-Configurer range_breakout_polyvalent.py
-Lancer le backtest
-Analyser les résultats (summary.csv + trades.csv)
-Itérer sur les paramètres si nécessaire
-Coder l'EA MT5 avec les paramètres validés
+rng_ASSET_RUN_ID_MAGIC.log               ← log complet
 
 ---
 
-### Paramètres timezone disponibles (exemples)
+## Workflow de déploiement sur un nouvel actif
+
+1. Récupérer les données tick (Tick Data Suite, GMT+0, NO-DST)
+2. Si fichier > 10 Go : extraire la période utile via extract_years.py
+3. Adapter et lancer analyse_exploratoire.py (avec YEARS_FILTER si nécessaire)
+4. Valider les paramètres avec Claude (JSON de l'analyse)
+5. Configurer range_breakout_polyvalent.py
+6. Lancer le backtest
+7. Analyser les résultats (summary.csv + trades.csv)
+8. Itérer sur les paramètres si nécessaire
+9. Coder l'EA MT5 avec les paramètres validés
+
+---
+
+## Paramètres timezone disponibles (exemples)
 
 | Marché | RANGE_TIMEZONE | Ouverture locale |
 |--------|----------------|-----------------|
-| NASDAQ / SP500 / Dow | `America/New_York` | 9h30 |
+| NASDAQ / SP500 / Dow / Gold | `America/New_York` | 9h30 |
 | DAX / CAC40 | `Europe/Berlin` | 9h00 |
 | FTSE 100 | `Europe/London` | 8h00 |
 | Nikkei | `Asia/Tokyo` | 9h00 |
-| Or / Pétrole (ouverture US) | `America/New_York` | 9h30 |
 
-Le DST est géré automatiquement pour toutes ces timezones via `zoneinfo`.
-**Ne jamais recoder le DST manuellement.**
+Le DST est géré automatiquement via `zoneinfo`. **Ne jamais recoder le DST manuellement.**
 
 ---
 
 ## Points de vigilance pour la transformation en EA MT5
 
 ### 1. Gestion du temps — point le plus critique
-
-**En Python :** `zoneinfo` convertit automatiquement l'heure locale en UTC.
-Les données Tick Data Suite sont en GMT+0 = UTC → comparaison directe.
-
-**En MT5 :** pas de `zoneinfo`. La conversion doit être faite manuellement.
+En Python : `zoneinfo` convertit automatiquement l'heure locale en UTC.
+En MT5 : utiliser `TimeGMT()` comme référence, implémenter `IsDST_US()` manuellement.
 
 ```mql5
-// Référence temporelle : toujours TimeGMT(), jamais TimeCurrent()
 datetime gmt_now = TimeGMT();
-
-// Offset broker = différence entre heure broker et GMT
-int broker_offset = (int)(TimeCurrent() - TimeGMT());
-
-// Heure de début du range en GMT
-// Exemple NASDAQ 9h30 New York :
-// Hiver (EST) : 14h30 GMT | Été (EDT) : 13h30 GMT
-// Implémenter la détection DST US en MQL5 :
-// DST US : 2e dim. mars → 1er dim. novembre
 bool is_dst = IsDST_US(gmt_now);
 int range_start_gmt_hour = is_dst ? 13 : 14;
 int range_start_gmt_min  = 30;
 ```
 
-**Fonction `IsDST_US()` à implémenter en MQL5** — c'est un point clé
-qui devra être codé et testé rigoureusement. Se référer à
-`library/time_issues_and_trading.md`.
-
----
-
 ### 2. MAGIC_NUMBER → magic number des ordres MT5
-
-Le `MAGIC_NUMBER` du script Python doit être reporté tel quel dans l'EA MT5
-comme magic number des ordres. Cela permet de tracer exactement quels ordres
-ont été passés par quel robot, et de filtrer les ordres dans le journal.
-
 ```mql5
-int MAGIC = 0xC3D4E5F6;  // même valeur que dans le script Python
+int MAGIC = 0xE5F6G7H8;  // même valeur que dans le script Python
 request.magic = MAGIC;
 ```
 
----
-
-### 3. Mode SIGNAL_MODE
-
-**FVG en MT5 :** utiliser `iOpen()`, `iHigh()`, `iLow()`, `iClose()` sur
-le timeframe configuré (SIGNAL_TIMEFRAME_MIN). Le pattern 3 bougies
-s'applique identiquement. Attention aux index MT5 : bougie 0 = en cours,
-bougie 1 = dernière fermée.
-
-**BREAKOUT en MT5 :** plus simple — surveiller la clôture de chaque bougie
-et comparer avec range_high / range_low.
-
----
+### 3. SIGNAL_MODE en MT5
+- **FVG** : `iOpen()`, `iHigh()`, `iLow()`, `iClose()` sur SIGNAL_TIMEFRAME_MIN. Bougie 0 = en cours, bougie 1 = dernière fermée.
+- **BREAKOUT** : surveiller la clôture de chaque bougie vs range_high/range_low.
 
 ### 4. TRADE_DIRECTION
-
-En MT5 :
 ```mql5
 input string TradeDirection = "BOTH";  // "BOTH", "BUY_ONLY", "SELL_ONLY"
 ```
-Filtrer dans `OnTick()` avant d'envoyer l'ordre.
-
----
 
 ### 5. MAX_TRADE_DURATION_MIN
-
-En MT5, implémenter dans `OnTick()` :
 ```mql5
 if(PositionSelect(Symbol())) {
    datetime open_time = (datetime)PositionGetInteger(POSITION_TIME);
@@ -226,41 +246,21 @@ if(PositionSelect(Symbol())) {
 }
 ```
 
----
-
 ### 6. Filtres jours de semaine
-
 ```mql5
-input bool TradeMonday    = true;
-input bool TradeTuesday   = true;
-input bool TradeWednesday = true;
-input bool TradeThursday  = true;
-input bool TradeFriday    = true;
-
+input bool TradeMonday = true; /* ... */
 MqlDateTime dt; TimeGMT(dt);
-bool day_allowed = false;
-switch(dt.day_of_week) {
-   case 1: day_allowed = TradeMonday;    break;
-   case 2: day_allowed = TradeTuesday;   break;
-   case 3: day_allowed = TradeWednesday; break;
-   case 4: day_allowed = TradeThursday;  break;
-   case 5: day_allowed = TradeFriday;    break;
-}
+// Filtrer selon dt.day_of_week
 ```
 
----
-
 ### 7. Calcul du lot en MT5
-
-Ne pas utiliser de `CONTRACT_VALUE` fixe. Utiliser :
 ```mql5
 double tick_value = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_VALUE);
 double tick_size  = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_SIZE);
 double point      = SymbolInfoDouble(Symbol(), SYMBOL_POINT);
-
-double sl_distance_pts = MathAbs(entry - sl) / point;
-double risk_amount     = AccountBalance() * RiskPercent / 100.0;
-double lot = risk_amount / (sl_distance_pts * tick_value / tick_size * point);
+double sl_pts     = MathAbs(entry - sl) / point;
+double risk       = AccountBalance() * RiskPercent / 100.0;
+double lot        = risk / (sl_pts * tick_value / tick_size * point);
 lot = MathFloor(lot / SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_STEP))
       * SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_STEP);
 lot = MathMax(lot, SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_MIN));
@@ -268,25 +268,11 @@ lot = MathMax(lot, SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_MIN));
 
 ---
 
-## Résultats de référence (NASDAQ, données 2012-2026)
-
-| Version | R:R | Mode | Années+ | P&L total | Win rate |
-|---------|-----|------|---------|-----------|---------|
-| V4 | 2:1 | FVG | 3/15 | -5 432 pts | 29.8% |
-| V5 | 2:1 | FVG + retest | 3/15 | -5 432 pts | 29.8% |
-| V6 (en cours) | 3:1 | FVG | — | — | — |
-
-**Observation clé :** avec R:R 2:1, win rate global 29.8% < seuil rentabilité 33.3%.
-Simulation R:R 3:1 (borne haute) : 12/15 années positives.
-Seuil de rentabilité théorique pour R:R 3:1 = **25.0%** → validé sur les données.
-
----
-
 ## Prochaines étapes
-1. ⏳ Attendre les résultats du backtest V6 (R:R 3:1, 6 années sélectionnées)
-2. ⏳ Attendre les résultats de l'analyse exploratoire SP500
-3. Lancer le backtest SP500 avec `range_breakout_polyvalent.py`
-4. Comparer NASDAQ vs SP500 sur les mêmes années
-5. Tester mode BREAKOUT vs FVG sur NASDAQ
-6. Tester `TRADE_DIRECTION = "SELL_ONLY"` (meilleur WR observé en V4)
-7. Coder l'EA MT5 générique
+1. ⏳ Attendre fin extraction Gold (extract_years.py en cours)
+2. Lancer analyse_exploratoire_Gold.py sur le fichier extrait 2015-2026
+3. Valider les paramètres Gold avec Claude
+4. Lancer le backtest Gold avec range_breakout_polyvalent.py
+5. Analyser et comparer NASDAQ / SP500 / Gold
+6. Tester filtres additionnels identifiés (vendredi NASDAQ, MIN_RANGE SP500 > 7 pts, BUY_ONLY SP500)
+7. Décider de la suite (notamment : codage EA MT5)
