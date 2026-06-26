@@ -1,5 +1,5 @@
 # ======================================================================
-# Run 3/3 — Trailing factor=2.0, BE=0.5×SL avant activation
+# Run 1/3 — Trailing factor=2.0, BE=0.0 (trailing immédiat)
 # ======================================================================
 
 # -*- coding: utf-8 -*-
@@ -80,8 +80,8 @@ import numpy as np
 # ==============================================================================
 
 # --- Identifiants du run ---
-RUN_ID       = "v8_trail_f2_be05"
-MAGIC_NUMBER = "M3N4O5P6"   # ← Changer manuellement pour chaque nouveau run
+RUN_ID       = "v8_trail_f2_be0"
+MAGIC_NUMBER = "K1L2M3N4"   # ← Changer manuellement pour chaque nouveau run
 
 # --- Fichier de données (ticks Tick Data Suite) ---
 FILE_PATH  = r"C:\Users\ericf\Documents\Trading algo\Tick Data Suite\2011-10-01 - 2026-05-31 - USA_100_Technical_Index_GMT+0_NO-DST ticks.csv"
@@ -106,7 +106,7 @@ TRAILING_ATR_FACTOR = 2.0
 
 # BE_FACTOR : fraction du SL à atteindre avant activation du trailing
 # 0.0 = trailing immédiat | 0.5 = demi-SL | 1.0 = break-even complet
-BE_FACTOR = 0.5
+BE_FACTOR = 0.0
 
 # --- Autres paramètres stratégie ---
 MAX_TRADE_DURATION_MIN = 240   # Durée max en minutes (0 = pas de limite)
@@ -446,11 +446,13 @@ def simulate_trailing(ts_us, ask, bid, direction, sl_fixed,
                 sl_current = min(sl_current, sl_trail)
 
         # Vérifier si le SL est touché sur cette bougie
-        if direction=='BUY'  and lows[i]  <= sl_current:
-            result = 'TP_TRAIL' if be_reached else 'SL'
+        # TP_TRAIL : sortie trailing ET prix de sortie favorable (au-dessus entry pour BUY)
+        # SL       : sortie en perte (trailing ou fixe)
+        if direction=='BUY' and lows[i] <= sl_current:
+            result = 'TP_TRAIL' if sl_current > entry_price else 'SL'
             return result, float(sl_current), int(ts_c[i])
         if direction=='SELL' and highs[i] >= sl_current:
-            result = 'TP_TRAIL' if be_reached else 'SL'
+            result = 'TP_TRAIL' if sl_current < entry_price else 'SL'
             return result, float(sl_current), int(ts_c[i])
 
     return 'CLOSE_EOD', float(mid[-1]), int(ts_us[-1])
