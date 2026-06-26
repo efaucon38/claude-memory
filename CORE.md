@@ -22,7 +22,7 @@ _Last updated: 2026-06-25_
   - Format données : `JJ.MM.AAAA HH:MM:SS.mmm, Bid, Ask, VolBid, VolAsk` (GMT+0, sans DST)
   - ⚠️ Toujours vérifier première/dernière ligne avant tout backtest
   - Workflow obligatoire : télécharger d'abord, exporter les ticks ensuite
-  - script de vérification des dates (première et dernière ligne) : 
+  - script de vérification des dates (première et dernière ligne) : bot_files/Tick_Data_Suite_chek_file_dates_code.md 
 - **Statut actuel des fichiers** :
 
 | Symbole | Période réelle | Statut | Nom fichier |
@@ -123,7 +123,9 @@ Ces règles sont spécifiques à Claude Code. Elles remplacent la règle ci-dess
 | EA Desk Quant — EA_FX_Universal v2.9 | 7 actifs | Test démo | `bot_files/EA_FX_Universal_code.md` |
 | Range Breakout 9h30 EST — Python v4 | NASDAQ | Référence résultats | `bot_files/Robot_range_breakout_9h30_EST_Code.md` |
 | Range Breakout Polyvalent — Python V8 | NASDAQ | En cours d'exécution (3 runs trailing) | `bot_files/Robot_range_breakout_polyvalent_code.md` |
-| **extract_years.py** | **Outil utilitaire** | **Opérationnel** | **`bot_files/extract_years_code.md`** |
+| extract_years.py | Outil utilitaire | Opérationnel | `bot_files/extract_years_code.md` |
+| chek_file_dates.py | Outil utilitaire - vérifie les dates de début et de fin d'un fichier CSV de données | Opérationnel | `bot_files
+/Tick_Data_Suite_chek_file_dates_code.md` |
 
 ## Bibliothèque (index)
 | Sujet | Fichier |
