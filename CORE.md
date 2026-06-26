@@ -29,16 +29,16 @@ _Last updated: 2026-06-25_
 | EURUSD  | 01.2005→05.2026 | ✅ Utilisable (6.96 Go) - ticks réels - GMT+0 sans DST | `2005-01-02 - 2026-05-31 - EURUSD_GMT+0_NO-DST ticks.csv` |
 | EURUSD  | 05.2003→05.2026 | ✅ Utilisable (8 Mo) - bougies H1 précalculées - GMT+0 sans DST | `2003-05-04 - 2026-05-31 - EURUSD_GMT+0_NO-DST H1_H1.csv` |
 | GBPJPY  | 01.2020→05.2026 | ✅ Utilisable (10.26 Go) - ticks réels - GMT+0 sans DST | `2005-01-02 - 2026-05-31 - GBPJPY_GMT+0_NO-DST ticks.csv` |
-| USDJPY  | 01.2020→05.2026 | ✅ Utilisable (8.02 Go) - ticks réels - GMT+0 sans DST | `2005-01-02 - 2026-05-31 - USDJPY_GMT+0_NO-DST ticks.csv` |
-| USDJPY  | 01.2020→02.2026 | ✅ Utilisable (8 Mo) - bougies H1 précalculées - GMT+0 sans DST | `2003-05-04 - 2026-05-31 - USDJPY_GMT+0_NO-DST H1_H1.csv` |
-| XAUUSD  | 2003-05-05→2026-05-31 | ✅ Utilisable (22.97 Go) - ticks réels - fichier extrait 2015-2026 disponible - GMT+0 sans DST | `` |
-| XAUUSD extrait | 2015-01-01→2026-12-31 | ✅ Utilisable (~10 Go) - ticks réels - créé via extract_years.py - GMT+0 sans DST | `` |
-| XAGUSD | 01.2005→05.2026 | ✅ Utilisable (5.54 Go) - ticks réels - GMT+0 sans DST | `2005-01-02 - 2026-05-31 - XAGUSD_GMT+0_NO-DST ticks` |
+| USDJPY  | 01.2020→05.2026 | ✅ Utilisable (8.0 Go) - ticks réels - GMT+0 sans DST | `2005-01-02 - 2026-05-31 - USDJPY_GMT+0_NO-DST ticks.csv` |
+| USDJPY  | 01.2020→02.2026 | ✅ Utilisable (8.0 Mo) - bougies H1 précalculées - GMT+0 sans DST | `2003-05-04 - 2026-05-31 - USDJPY_GMT+0_NO-DST H1_H1.csv` |
+| XAUUSD  | 05.2003→05.2026 | ✅ Utilisable (23.0 Go) - ticks réels - fichier extrait 2015-2026 disponible - GMT+0 sans DST | `2003-05-05 - 2026-06-23 - XAUUSD_GMT+0_NO-DST ticks.csv` |
+| XAUUSD extrait | 01.2018→05.2026 | ✅ Utilisable (20.4 Go) - ticks réels - créé via extract_years.py - GMT+0 sans DST | `2017-12-11 - 2026-06-05 - XAUUSD_GMT+0_NO-DST ticks.csv` |
+| XAGUSD | 01.2005→05.2026 | ✅ Utilisable (5.5 Go) - ticks réels - GMT+0 sans DST | `2005-01-02 - 2026-05-31 - XAGUSD_GMT+0_NO-DST ticks` |
 | USA_100 M1 | 10.2011→05.2026 | ✅ Utilisable (0.25 Go) - bougies M1 précalculées - GMT+0 sans DST | `2011-09-18 - 2026-06-07 - USA_500_Index_GMT+0_NO-DST M1_M1.csv` |
 | USA_100 | 10.2011→05.2026 | ✅ Utilisable (28.1 Go) - ticks réels - GMT+0 sans DST | `2011-10-01 - 2026-05-31 - USA_100_Technical_Index_GMT+0_NO-DST ticks.csv` |
 | USA_100 | 2026-06-15→2026-06-19 | ✅ Utilisable (92 Mo) - ticks réels - petit échantillon pour test de robot - GMT+0 sans DST | `2026-06-15 - 2026-06-19 - USA_100_Technical_Index_GMT+0_NO-DST ticks pour test.csv` |
 | USA_500 | 10.2011→05.2026 | ✅ Utilisable (7.9 Go) - ticks réels - GMT+0 sans DST  | `2011-10-01 - 2026-05-31 - USA_500_Index_GMT+0_NO-DST ticks` |
-| USA_500 | 2011-09-18→2026-06-07 | ✅ Utilisable (0.2 Go) - bougies M1 précalculées - GMT+0 sans DST | `2011-09-18 - 2026-06-07 - USA_500_Index_GMT+0_NO-DST M1_M1.csv` |
+| USA_500 | 10.2011→05.2026 | ✅ Utilisable (0.2 Go) - bougies M1 précalculées - GMT+0 sans DST | `2011-09-18 - 2026-06-07 - USA_500_Index_GMT+0_NO-DST M1_M1.csv` |
 
 
 ## Mode de collaboration (interface Claude — programmation Python/MQL5)
@@ -155,7 +155,7 @@ Ces règles sont spécifiques à Claude Code. Elles remplacent la règle ci-dess
 - **Note de synthèse** : à rédiger en français pour le groupe d'algo trading. Graphiques en % du capital. Pas de mélange points/pourcentages. Structure : contexte → méthodologie → stratégie → résultats par actif → comparatif modes de sortie → conclusions.
 
 ## 💡 Idées de stratégies (backlog)
-_(inchangé)_
+_ne pas hésiter à aller consulter le site internet SSRN https://www.ssrn.com/ssrn/ qui regorge d'informations utiles pour identifier des stratégies éprouvées_
 
 - **Carte d'identité d'un actif** : système pour caractériser un actif (régime/phase à l'instant t)
 - **Couplage VIX** : corrélation décalée avec le VIX. À tester en walk-forward 70/30
