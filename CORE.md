@@ -113,7 +113,7 @@ Ces règles sont spécifiques à Claude Code. Elles remplacent la règle ci-dess
 | ICT_ROBOT | Multi-actifs | Construction | `projects/ICT_ROBOT.md` |
 | UFUNDED_OVERNIGHT_PORTFOLIO | US Stocks / ETF | Allocation et sizing finalisés | `projects/UFUNDED.md` |
 | Range Breakout 9h30 EST + FVG | NASDAQ (US100) | Backtests V4/V5/V6 terminés — résultats mitigés | `projects/RANGE_BREAKOUT_9H30_EST.md` |
-| **Range Breakout Polyvalent** | **NASDAQ, SP500, Gold...** | **En cours — analyse Gold en cours** | **`projects/RANGE_BREAKOUT_POLYVALENT.md`** |
+| Range Breakout Polyvalent V8 | NASDAQ | ✅ Terminé — 3 runs trailing analysés | `bot_files/Robot_range_breakout_polyvalent_V8_code.md` |
 
 ## Dernières versions codées (index)
 | Projet | Marché | Statut | Fichier |
@@ -155,7 +155,9 @@ Ces règles sont spécifiques à Claude Code. Elles remplacent la règle ci-dess
 - **Biais M1 pour simulation trailing** : le mode M1 (bougies précalculées) est incompatible avec la détection FVG (nécessite bid/ask séparés). La simulation trailing V8 reste en mode TICKS avec reconstruction vectorisée des bougies 1min. La détection au close de bougie introduit un biais minimal et constant entre runs.
 - **Bug TP_TRAIL V8** : corrigé — TP_TRAIL attribué uniquement si le prix de sortie est favorable par rapport au prix d'entrée. Avant correction, tous les trades sortaient en TP_TRAIL (WR 100% avec P&L négatif).
 - **Sharpe inadapté aux stratégies non-quotidiennes** : le ratio de Sharpe pénalise les jours sans trade (rendement 0). Pour cette stratégie (~1 trade/jour max), préférer l'espérance et le profit factor comme métriques principales.
-- **Note de synthèse** : à rédiger en français pour le groupe d'algo trading. Graphiques en % du capital. Pas de mélange points/pourcentages. Structure : contexte → méthodologie → stratégie → résultats par actif → comparatif modes de sortie → conclusions.
+- **Note de synthèse** : à rédiger en français pour le groupe d'algo trading. Graphiques en % du capital si on ne peut pas calculer la vraie valeur en monnaie fiat (euros ou dollars selon la devise du compte). Pas de mélange points/pourcentages. Structure : contexte → méthodologie → stratégie → résultats par actif → comparatif modes de sortie → conclusions.
+  **Range Breakout V8 — conclusions** : le trailing stop ATR n'améliore pas structurellement la stratégie FVG sur le NASDAQ. Meilleure configuration : factor=3, BE=0 (moyenne −11,5%/an vs −23,6% en TP fixe). Seule 2024 est spectaculairement positive (+53,1%) grâce à la forte directionnalité du NASDAQ. Le problème est structurel — le signal FVG génère trop peu de vrais mouvements persistants. Prochaine étape : filtres additionnels (vendredi uniquement, MIN_RANGE plus élevé).
+- **Note de synthèse** : ✅ Rédigée en français, exportée en PDF (juin 2026). Disponible sous `notes/Note_synthese_Range_Breakout_FINALE.pdf`.
 
 ## 💡 Idées de stratégies (backlog)
 _ne pas hésiter à aller consulter le site internet SSRN https://www.ssrn.com/ssrn/ qui regorge d'informations utiles pour identifier des stratégies éprouvées_
