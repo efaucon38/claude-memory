@@ -22,6 +22,7 @@ _Last updated: 2026-06-25_
   - Format données : `JJ.MM.AAAA HH:MM:SS.mmm, Bid, Ask, VolBid, VolAsk` (GMT+0, sans DST)
   - ⚠️ Toujours vérifier première/dernière ligne avant tout backtest
   - Workflow obligatoire : télécharger d'abord, exporter les ticks ensuite
+  - script de vérification des dates (première et dernière ligne) : 
 - **Statut actuel des fichiers** :
 
 | Symbole | Période réelle | Statut | Nom fichier |
