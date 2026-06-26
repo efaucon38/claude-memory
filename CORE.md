@@ -24,15 +24,22 @@ _Last updated: 2026-06-25_
   - Workflow obligatoire : télécharger d'abord, exporter les ticks ensuite
 - **Statut actuel des fichiers** :
 
-| Symbole | Période réelle | Statut |
-|---------|---------------|--------|
-| EURUSD  | 01.2020→02.2026 | ✅ Utilisable |
-| GBPJPY  | 01.2020→02.2026 | ✅ Utilisable |
-| USDJPY  | 01.2020→02.2026 | ✅ Utilisable |
-| XAGUSD  | 01.2020→02.2026 | ✅ Utilisable |
-| XAUUSD  | 2003-05-05→2026-05-31 | ✅ Utilisable (22.97 Go) — fichier extrait 2015-2026 en cours de création |
-| USA_100 | 2011-10-01→2026-05-31 | ✅ Utilisable (28.77 Go) |
-| USA_500 | 2011-10-01→2026-05-31 | ✅ Utilisable (8.06 Go) |
+| Symbole | Période réelle | Statut | Nom fichier |
+|---------|---------------|--------|--------|
+| EURUSD  | 01.2005→05.2026 | ✅ Utilisable (6.96 Go) - ticks réels - GMT+0 sans DST | `2005-01-02 - 2026-05-31 - EURUSD_GMT+0_NO-DST ticks.csv` |
+| EURUSD  | 05.2003→05.2026 | ✅ Utilisable (8 Mo) - bougies H1 précalculées - GMT+0 sans DST | `2003-05-04 - 2026-05-31 - EURUSD_GMT+0_NO-DST H1_H1.csv` |
+| GBPJPY  | 01.2020→05.2026 | ✅ Utilisable (10.26 Go) - ticks réels - GMT+0 sans DST | `2005-01-02 - 2026-05-31 - GBPJPY_GMT+0_NO-DST ticks.csv` |
+| USDJPY  | 01.2020→05.2026 | ✅ Utilisable (8.02 Go) - ticks réels - GMT+0 sans DST | `2005-01-02 - 2026-05-31 - USDJPY_GMT+0_NO-DST ticks.csv` |
+| USDJPY  | 01.2020→02.2026 | ✅ Utilisable (8 Mo) - bougies H1 précalculées - GMT+0 sans DST | `2003-05-04 - 2026-05-31 - USDJPY_GMT+0_NO-DST H1_H1.csv` |
+| XAUUSD  | 2003-05-05→2026-05-31 | ✅ Utilisable (22.97 Go) - ticks réels - fichier extrait 2015-2026 disponible - GMT+0 sans DST | `` |
+| XAUUSD extrait | 2015-01-01→2026-12-31 | ✅ Utilisable (~10 Go) - ticks réels - créé via extract_years.py - GMT+0 sans DST | `` |
+| XAGUSD | 01.2005→05.2026 | ✅ Utilisable (5.54 Go) - ticks réels - GMT+0 sans DST | `2005-01-02 - 2026-05-31 - XAGUSD_GMT+0_NO-DST ticks` |
+| USA_100 M1 | 10.2011→05.2026 | ✅ Utilisable (0.25 Go) - bougies M1 précalculées - GMT+0 sans DST | `2011-09-18 - 2026-06-07 - USA_500_Index_GMT+0_NO-DST M1_M1.csv` |
+| USA_100 | 10.2011→05.2026 | ✅ Utilisable (28.1 Go) - ticks réels - GMT+0 sans DST | `2011-10-01 - 2026-05-31 - USA_100_Technical_Index_GMT+0_NO-DST ticks.csv` |
+| USA_100 | 2026-06-15→2026-06-19 | ✅ Utilisable (92 Mo) - ticks réels - petit échantillon pour test de robot - GMT+0 sans DST | `2026-06-15 - 2026-06-19 - USA_100_Technical_Index_GMT+0_NO-DST ticks pour test.csv` |
+| USA_500 | 10.2011→05.2026 | ✅ Utilisable (7.9 Go) - ticks réels - GMT+0 sans DST  | `2011-10-01 - 2026-05-31 - USA_500_Index_GMT+0_NO-DST ticks` |
+| USA_500 | 2011-09-18→2026-06-07 | ✅ Utilisable (0.2 Go) - bougies M1 précalculées - GMT+0 sans DST | `2011-09-18 - 2026-06-07 - USA_500_Index_GMT+0_NO-DST M1_M1.csv` |
+
 
 ## Mode de collaboration (interface Claude — programmation Python/MQL5)
 - L'utilisateur décrit l'idée ou le besoin
@@ -114,7 +121,7 @@ Ces règles sont spécifiques à Claude Code. Elles remplacent la règle ci-dess
 | EA Desk Quant — Ponderation v3.0 OFFENSIF | 7 actifs + Gold | Test démo | `bot_files/Ponderation_code.md` |
 | EA Desk Quant — EA_FX_Universal v2.9 | 7 actifs | Test démo | `bot_files/EA_FX_Universal_code.md` |
 | Range Breakout 9h30 EST — Python v4 | NASDAQ | Référence résultats | `bot_files/Robot_range_breakout_9h30_EST_Code.md` |
-| **Range Breakout Polyvalent** | **Multi-actifs** | **Opérationnel** | **`bot_files/Robot_range_breakout_polyvalent_code.md`** |
+| Range Breakout Polyvalent — Python V8 | NASDAQ | En cours d'exécution (3 runs trailing) | `bot_files/Robot_range_breakout_polyvalent_code.md` |
 | **extract_years.py** | **Outil utilitaire** | **Opérationnel** | **`bot_files/extract_years_code.md`** |
 
 ## Bibliothèque (index)
@@ -141,6 +148,11 @@ Ces règles sont spécifiques à Claude Code. Elles remplacent la règle ci-dess
 - **Range Breakout Polyvalent** : moteur générique. Gestion timezone via `zoneinfo`. Deux modes : FVG et BREAKOUT. Résultats NASDAQ/SP500 décevants en configuration de base (WR < 25% sur R:R 3:1). Gold en cours de test. Script `extract_years.py` disponible pour découper les gros fichiers historiques.
 - **extract_years.py** : outil utilitaire générique pour extraire une plage d'années depuis un fichier tick CSV. Lecture ligne par ligne en streaming, comparaison rapide sur positions 6:10 du timestamp. Stocké avec les scripts Range Breakout Polyvalent pendant la phase de développement. À terme → dossier Outils/Utils.
 - **Conclusions intermédiaires Range Breakout** : sur NASDAQ et SP500, win rate systématiquement sous le seuil de rentabilité (25% pour R:R 3:1, 33.3% pour R:R 2:1). Vendredi seul jour profitable sur NASDAQ (WR 26.4%). Mercredi pire jour sur les deux actifs. SP500 BUY meilleur que SELL. La stratégie est plus efficace sur les marchés volatils (ranges > 30 pts) — le Gold est le prochain actif à tester.
+- **Conventions de mesure backtests** : toujours exprimer les performances en % du capital (pas en points de prix). Ne jamais sommer des % annuels calculés sur des capitaux réinitialisés — utiliser la moyenne annuelle comme indicateur synthétique. Les points de prix sont réservés aux paramètres techniques (SL, range, spread).
+- **Biais M1 pour simulation trailing** : le mode M1 (bougies précalculées) est incompatible avec la détection FVG (nécessite bid/ask séparés). La simulation trailing V8 reste en mode TICKS avec reconstruction vectorisée des bougies 1min. La détection au close de bougie introduit un biais minimal et constant entre runs.
+- **Bug TP_TRAIL V8** : corrigé — TP_TRAIL attribué uniquement si le prix de sortie est favorable par rapport au prix d'entrée. Avant correction, tous les trades sortaient en TP_TRAIL (WR 100% avec P&L négatif).
+- **Sharpe inadapté aux stratégies non-quotidiennes** : le ratio de Sharpe pénalise les jours sans trade (rendement 0). Pour cette stratégie (~1 trade/jour max), préférer l'espérance et le profit factor comme métriques principales.
+- **Note de synthèse** : à rédiger en français pour le groupe d'algo trading. Graphiques en % du capital. Pas de mélange points/pourcentages. Structure : contexte → méthodologie → stratégie → résultats par actif → comparatif modes de sortie → conclusions.
 
 ## 💡 Idées de stratégies (backlog)
 _(inchangé)_
