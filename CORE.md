@@ -174,6 +174,8 @@ _ne pas hésiter à aller consulter le site internet SSRN https://www.ssrn.com/s
 - **Risk-on / Risk-off** : cumuler performances pour lisser la courbe d'equity
 - **Variantes pour multi-comptes prop firms** : éviter d'être identifié comme copie de signal
 - **Stratégie "Dow"** : points hauts/bas pour optimiser le timing d'entrée
+- **Mean Reversion** : déterminer dans quelles conditions on a un système de range horizontal établi, puis les conditions dans lesquelles à partir de quel écart vis-à-vis de la moyenne un trade pris lorsque le prix est en train de s'écarter de la moyenne revient à coup sûr à la moyenne
+- **Bougies** : à partir d'un FVG, calculer la probabilité qu'il revienne dans les 50% du FVG, ce qui permettrait de passer des trades
 
 ## 📌 Tâches en attente (projets existants)
 - **EA_FX_Universal** : retester avec Tick Data Suite, interrupteur module gestion risque, augmenter niveau de risque
