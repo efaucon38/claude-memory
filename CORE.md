@@ -125,8 +125,7 @@ Ces règles sont spécifiques à Claude Code. Elles remplacent la règle ci-dess
 | Range Breakout 9h30 EST — Python v4 | NASDAQ | Référence résultats | `bot_files/Robot_range_breakout_9h30_EST_Code.md` |
 | Range Breakout Polyvalent — Python V8 | NASDAQ | En cours d'exécution (3 runs trailing) | `bot_files/Robot_range_breakout_polyvalent_code.md` |
 | extract_years.py | Outil utilitaire | Opérationnel | `bot_files/extract_years_code.md` |
-| chek_file_dates.py | Outil utilitaire - vérifie les dates de début et de fin d'un fichier CSV de données | Opérationnel | `bot_files
-/Tick_Data_Suite_chek_file_dates_code.md` |
+| chek_file_dates.py | Outil utilitaire - vérifie les dates de début et de fin d'un fichier CSV de données | Opérationnel | `bot_files/Tick_Data_Suite_chek_file_dates_code.md` |
 
 ## Bibliothèque (index)
 | Sujet | Fichier |
