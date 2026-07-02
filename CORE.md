@@ -165,7 +165,7 @@ Ces règles sont spécifiques à Claude Code. Elles remplacent la règle ci-dess
 ## 💡 Idées de stratégies (backlog)
 _ne pas hésiter à aller consulter le site internet SSRN https://www.ssrn.com/ssrn/ qui regorge d'informations utiles pour identifier des stratégies éprouvées_
 
-- **Carte d'identité d'un actif** : système pour caractériser un actif (régime/phase à l'instant t)
+- **Carte d'identité d'un actif** : système pour caractériser un actif (régime/phase à l'instant t).  ✅ promu en projet actif — voir projets/CARTE_IDENTITE_SYMBOL.md (méthodologie complète en cours de construction, premier cas d'application AUDCAD) ;
 - **Couplage VIX** : corrélation décalée avec le VIX. À tester en walk-forward 70/30
 - **Stratégie "F14"** : trend-following → mean-reversion → breakout → EA MT5 unique avec filtres de régime
 - **Gestionnaire de risque adaptatif** : augmenter le risque en phase favorable, réduire en phase défavorable
