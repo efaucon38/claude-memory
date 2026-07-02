@@ -38,9 +38,9 @@ _Last updated: 2026-06-25_
 | USA_100 M1 | 10.2011→05.2026 | ✅ Utilisable (0.25 Go) - bougies M1 précalculées - GMT+0 sans DST | `2011-09-18 - 2026-06-07 - USA_500_Index_GMT+0_NO-DST M1_M1.csv` |
 | USA_100 | 10.2011→05.2026 | ✅ Utilisable (28.1 Go) - ticks réels - GMT+0 sans DST | `2011-10-01 - 2026-05-31 - USA_100_Technical_Index_GMT+0_NO-DST ticks.csv` |
 | USA_100 | 2026-06-15→2026-06-19 | ✅ Utilisable (92 Mo) - ticks réels - petit échantillon pour test de robot - GMT+0 sans DST | `2026-06-15 - 2026-06-19 - USA_100_Technical_Index_GMT+0_NO-DST ticks pour test.csv` |
-| USA_500 | 10.2011→05.2026 | ✅ Utilisable (7.9 Go) - ticks réels - GMT+0 sans DST  | `2011-10-01 - 2026-05-31 - USA_500_Index_GMT+0_NO-DST ticks` |
+| USA_500 | 10.2011→05.2026 | ✅ Utilisable (7.9 Go) - ticks réels - GMT+0 sans DST  | `2011-10-01 - 2026-05-31 - USA_500_Index_GMT+0_NO-DST ticks.csv` |
 | USA_500 | 10.2011→05.2026 | ✅ Utilisable (0.2 Go) - bougies M1 précalculées - GMT+0 sans DST | `2011-09-18 - 2026-06-07 - USA_500_Index_GMT+0_NO-DST M1_M1.csv` |
-| AUDCAD | 03/01/2016→23/06/2026 | ✅ En cours de chargement - ticks réels - GMT+0 sans DST | `2016-01-03 - 2026-06-23 - AUDCAD_GMT+0_NO-DST tiks.csv` |
+| AUDCAD | 01.2016→06.2026 | ✅ En cours de chargement - ticks réels - GMT+0 sans DST | `2016-01-03 - 2026-06-23 - AUDCAD_GMT+0_NO-DST tiks.csv` |
 
 
 ## Mode de collaboration (interface Claude — programmation Python/MQL5)
@@ -114,7 +114,7 @@ Ces règles sont spécifiques à Claude Code. Elles remplacent la règle ci-dess
 | ICT_ROBOT | Multi-actifs | Construction | `projects/ICT_ROBOT.md` |
 | UFUNDED_OVERNIGHT_PORTFOLIO | US Stocks / ETF | Allocation et sizing finalisés | `projects/UFUNDED.md` |
 | Range Breakout 9h30 EST + FVG | NASDAQ (US100) | Backtests V4/V5/V6 terminés — résultats mitigés | `projects/RANGE_BREAKOUT_9H30_EST.md` |
-| Range Breakout Polyvalent V8 | NASDAQ | ✅ Terminé — 3 runs trailing analysés | `bot_files/Robot_range_breakout_polyvalent_V8_code.md` |
+| Range Breakout Polyvalent V8 | NASDAQ | ✅ Terminé — 3 runs trailing analysés | `projects/RANGE_BREAKOUT_POLYVALENT.md` |
 
 ## Dernières versions codées (index)
 | Projet | Marché | Statut | Fichier |
