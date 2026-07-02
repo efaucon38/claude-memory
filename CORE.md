@@ -41,7 +41,7 @@ _Last updated: 2026-06-25_
 | USA_100 | 2026-06-15→2026-06-19 | ✅ Utilisable (92 Mo) - ticks réels - petit échantillon pour test de robot - GMT+0 sans DST | `2026-06-15 - 2026-06-19 - USA_100_Technical_Index_GMT+0_NO-DST ticks pour test.csv` |
 | USA_500 | 10.2011→05.2026 | ✅ Utilisable (7.9 Go) - ticks réels - GMT+0 sans DST  | `2011-10-01 - 2026-05-31 - USA_500_Index_GMT+0_NO-DST ticks.csv` |
 | USA_500 | 10.2011→05.2026 | ✅ Utilisable (0.2 Go) - bougies M1 précalculées - GMT+0 sans DST | `2011-09-18 - 2026-06-07 - USA_500_Index_GMT+0_NO-DST M1_M1.csv` |
-| AUDCAD | 01.2016→06.2026 | ✅ En cours de chargement - ticks réels - GMT+0 sans DST | `2016-01-03 - 2026-06-23 - AUDCAD_GMT+0_NO-DST ticks.csv` |
+| AUDCAD | 01.2016→06.2026 | ✅ Utilisable (12,3 Go) - ticks réels - GMT+0 sans DST | `2016-01-03 - 2026-06-23 - AUDCAD_GMT+0_NO-DST ticks.csv` |
 
 
 ## Mode de collaboration (interface Claude — programmation Python/MQL5)
